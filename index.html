@@ -57,7 +57,7 @@
                                     <i data-lucide="clipboard-check"></i>
                                 </div>
                                 <div>
-                                    <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Seguimiento Actividades de Junta Directiva</h1>
+                                    <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Seguimiento Junta Directiva</h1>
                                     <p class="text-[10px] sm:text-xs text-slate-500 font-medium uppercase tracking-wider">Cámara de Comercio de Ipiales</p>
                                 </div>
                             </div>
@@ -100,9 +100,7 @@
                         </div>
 
                         <div class="flex gap-2 w-full sm:w-auto items-center justify-end">
-                            <button onclick="openConfigModal()" class="w-9 h-9 flex items-center justify-center bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors shadow-sm" title="Conectar con Google Sheets">
-                                <i data-lucide="cloud" class="w-5 h-5"></i>
-                            </button>
+                            <!-- Botón de Conectar eliminado -->
                             
                             <button onclick="exportToPDF()" class="w-9 h-9 flex items-center justify-center bg-slate-800 text-white rounded-full hover:bg-slate-900 transition-colors shadow-sm" title="Descargar PDF">
                                 <i data-lucide="download" class="w-5 h-5"></i>
@@ -167,6 +165,7 @@
                     <table class="w-full text-left border-collapse min-w-[1000px]">
                         <thead>
                             <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+                                <th class="px-6 py-4 w-12 text-center">#</th> <!-- Columna Consecutivo -->
                                 <th class="px-6 py-4">Fecha</th>
                                 <th class="px-6 py-4 w-1/3">Actividad / Tarea</th>
                                 <th class="px-6 py-4">Solicitante</th>
@@ -731,7 +730,7 @@
 
             noRes.classList.toggle('hidden', filtered.length > 0);
 
-            filtered.forEach(t => {
+            filtered.forEach((t, index) => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 transition-colors group';
                 const responsiblesList = processResponsibles(t.responsible);
@@ -740,6 +739,7 @@
                 ).join('');
 
                 tr.innerHTML = `
+                    <td class="px-6 py-4 text-xs font-bold text-slate-400 align-top text-center">${index + 1}</td>
                     <td class="px-6 py-4 text-sm font-bold text-slate-600 align-top whitespace-nowrap">${formatDate(t.date)}</td>
                     <td class="px-6 py-4 align-top"><div class="text-base font-bold text-slate-800 leading-snug">${t.task || "Sin Tarea"}</div></td>
                     <td class="px-6 py-4 text-sm font-medium text-slate-700 align-top">${t.requester || "N/A"}</td>
@@ -748,7 +748,9 @@
                         <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold border ${getStatusClass(t.status)} uppercase tracking-wider">${t.status || "Sin Estado"}</span>
                     </td>
                     <td class="px-6 py-4 text-right align-top">
-                        <button onclick="openModal(${t.id})" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Ver Detalles"><i data-lucide="info" class="w-5 h-5"></i></button>
+                        <button onclick="openModal(${t.id})" class="px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-all text-xs font-bold flex items-center gap-2 mx-auto whitespace-nowrap" title="Ver Detalles">
+                            <i data-lucide="eye" class="w-4 h-4"></i> Ver Detalle
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -876,6 +878,12 @@
         }
 
         // --- DETALLES Y VISTA PREVIA ---
+        
+        // Función que faltaba
+        function toggleStatusUpdate() {
+            const section = document.getElementById('updateStatusSection');
+            section.classList.toggle('hidden');
+        }
 
         function openModal(id) {
             const t = tasks.find(x => x.id === id);
