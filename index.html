@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Actividades - Junta Directiva</title>
+    <title>Portal Institucional - Cámara de Comercio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Bibliotecas para PDF -->
@@ -27,9 +27,9 @@
             border: 3px solid #f3f3f3;
             border-radius: 50%;
             border-top: 3px solid #3b82f6;
-            width: 20px;
-            height: 20px;
-            -webkit-animation: spin 1s linear infinite; /* Safari */
+            width: 30px;
+            height: 30px;
+            -webkit-animation: spin 1s linear infinite;
             animation: spin 1s linear infinite;
         }
         @keyframes spin {
@@ -40,27 +40,44 @@
 </head>
 <body class="text-slate-800">
 
+    <!-- Pantalla de Carga de Sincronización Completa -->
+    <div id="fullSyncOverlay" class="fixed inset-0 z-[200] hidden flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-sm transition-all">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-4 border border-slate-100">
+            <div class="loader mb-2"></div>
+            <p class="text-sm font-bold text-slate-700" id="syncOverlayText">Sincronizando con la nube...</p>
+            <p class="text-xs text-slate-400">Por favor, espere un momento.</p>
+        </div>
+    </div>
+
+    <!-- Notificaciones Flotantes (Toasts) -->
+    <div id="toast" class="fixed bottom-4 right-4 transform transition-all translate-y-20 opacity-0 z-[100] flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl text-white text-sm font-bold pointer-events-none">
+        <i id="toastIcon" data-lucide="info" class="w-5 h-5"></i>
+        <span id="toastMsg"></span>
+    </div>
+
     <div id="app" class="min-h-screen pb-20">
-        <!-- Header -->
+        <!-- Header Unificado -->
         <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
                 <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2 sm:gap-4">
                             <!-- LOGO CÁMARA DE COMERCIO -->
-                            <img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo Cámara de Comercio Ipiales" class="h-12 w-auto object-contain">
+                            <img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo Cámara de Comercio Ipiales" class="h-10 sm:h-12 w-auto object-contain">
                             
-                            <div class="h-8 w-px bg-slate-300 mx-2 hidden sm:block"></div>
+                            <div class="h-8 w-px bg-slate-300 mx-1 sm:mx-2 hidden sm:block"></div>
 
                             <div class="flex items-center gap-3">
-                                <div class="p-2 bg-red-600 rounded-lg text-white hidden sm:block">
-                                    <i data-lucide="clipboard-check"></i>
-                                </div>
                                 <div>
-                                    <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Seguimiento Tareas de Junta Directiva</h1>
-                                    <p class="text-[10px] sm:text-xs text-slate-500 font-medium uppercase tracking-wider">Cámara de Comercio de Ipiales</p>
+                                    <h1 class="text-sm sm:text-xl font-bold text-slate-900 leading-tight">Portal Institucional</h1>
+                                    <p class="text-[9px] sm:text-xs text-slate-500 font-medium uppercase tracking-wider">Cámara de Comercio</p>
                                 </div>
                             </div>
+
+                            <!-- Botón Volver al Home (Oculto en el Landing) -->
+                            <button id="backHomeBtn" onclick="switchView('landing')" class="hidden ml-2 sm:ml-4 p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-bold border border-transparent hover:border-blue-100">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i> <span class="hidden sm:inline">Volver</span>
+                            </button>
                         </div>
                         
                         <!-- Indicador de Estado de Conexión (Movil) -->
@@ -69,45 +86,57 @@
                         </div>
                     </div>
                     
-                    <!-- Filtros y Acciones -->
-                    <div class="flex flex-wrap items-center gap-3 justify-end">
+                    <!-- Contenedor Dinámico de Acciones según la Vista -->
+                    <div id="headerActions" class="hidden flex flex-wrap items-center gap-3 justify-end">
                         <!-- Indicador de Estado de Conexión (Desktop) -->
                         <div id="connectionStatus" class="hidden xl:flex items-center gap-2 px-3 py-1 bg-slate-50 rounded-full border border-slate-200 mr-2">
                             <div class="w-2 h-2 rounded-full bg-slate-400" id="statusDot"></div>
                             <span class="text-xs font-medium text-slate-500" id="statusText">Modo Local</span>
                         </div>
 
-                         <div class="relative flex-grow sm:flex-grow-0">
-                            <input type="text" id="taskSearchInput" placeholder="Buscar actividad..." 
-                                class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-48 transition-all">
-                            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
-                        </div>
-
-                        <div class="relative flex-grow sm:flex-grow-0">
-                            <select id="responsibleFilter" class="pl-10 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-40 cursor-pointer">
-                                <option value="all">Responsable</option>
-                            </select>
-                            <i data-lucide="user-check" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
-                        </div>
-
-                        <div class="relative flex-grow sm:flex-grow-0">
-                            <select id="statusFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 cursor-pointer w-full sm:w-32">
-                                <option value="all">Estado</option>
-                                <option value="cumplida">Cumplida</option>
-                                <option value="pendiente">Pendiente</option>
-                                <option value="en proceso">En Proceso</option>
-                            </select>
-                        </div>
-
-                        <div class="flex gap-2 w-full sm:w-auto items-center justify-end">
-                            <!-- Botón de Conectar eliminado -->
-                            
-                            <button onclick="exportToPDF()" class="w-9 h-9 flex items-center justify-center bg-slate-800 text-white rounded-full hover:bg-slate-900 transition-colors shadow-sm" title="Descargar PDF">
-                                <i data-lucide="download" class="w-5 h-5"></i>
+                        <!-- Acciones Específicas: Junta Directiva -->
+                        <div id="juntaActions" class="hidden flex flex-wrap items-center gap-2">
+                            <div class="relative flex-grow sm:flex-grow-0">
+                                <input type="text" id="taskSearchInput" placeholder="Buscar actividad..." 
+                                    class="pl-8 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-40 transition-all">
+                                <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                            </div>
+                            <div class="relative flex-grow sm:flex-grow-0">
+                                <select id="responsibleFilter" class="pl-8 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-36 cursor-pointer">
+                                    <option value="all">Responsable</option>
+                                </select>
+                                <i data-lucide="user-check" class="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                            </div>
+                            <div class="relative flex-grow sm:flex-grow-0">
+                                <select id="statusFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 cursor-pointer w-full sm:w-28">
+                                    <option value="all">Estado</option>
+                                    <option value="cumplida">Cumplida</option>
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="en proceso">En Proceso</option>
+                                </select>
+                            </div>
+                            <button onclick="openFormModal()" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm" title="Agregar Nueva Actividad">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Nueva Actividad
                             </button>
-                            
-                            <button onclick="openFormModal()" class="w-9 h-9 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-sm" title="Agregar Nueva Actividad">
-                                <i data-lucide="plus" class="w-5 h-5"></i>
+                        </div>
+
+                        <!-- Acciones Específicas: Calendario -->
+                        <div id="calendarioActions" class="hidden flex flex-wrap items-center gap-2">
+                            <div class="relative flex-grow sm:flex-grow-0 hidden sm:block">
+                                <select id="calendarDeptFilter" onchange="renderCalendar()" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-green-500 cursor-pointer w-full sm:w-48 max-w-full font-medium text-slate-600">
+                                    <option value="all">Todas las Áreas</option>
+                                    <!-- Options Injected by JS -->
+                                </select>
+                            </div>
+                            <button onclick="openFormEventModal()" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-full text-sm font-bold hover:bg-green-700 transition-colors shadow-sm" title="Agregar Evento">
+                                <i data-lucide="calendar-plus" class="w-4 h-4"></i> Nuevo Evento
+                            </button>
+                        </div>
+
+                        <!-- Acciones Compartidas (Config / PDF) -->
+                        <div class="flex gap-2 items-center border-l border-slate-200 pl-3 ml-1">
+                            <button onclick="handlePDFClick()" class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-full text-sm font-bold hover:bg-slate-900 transition-colors shadow-sm" title="Descargar Reporte PDF">
+                                <i data-lucide="download" class="w-4 h-4"></i> Descargar Reporte
                             </button>
                         </div>
                     </div>
@@ -115,114 +144,158 @@
             </div>
         </header>
 
-        <!-- Stats Overview & Chart -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-            <div id="loadingIndicator" class="hidden mb-4 p-4 bg-blue-50 text-blue-700 rounded-lg text-center font-medium text-sm flex items-center justify-center gap-2">
-                <div class="loader"></div> <span id="loadingText">Sincronizando con Google Sheets...</span>
+        <!-- ========================================== -->
+        <!-- PANTALLA 1: LANDING PAGE DE SELECCIÓN      -->
+        <!-- ========================================== -->
+        <div id="landingView" class="max-w-5xl mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[75vh]">
+            <h2 class="text-3xl font-bold text-slate-800 mb-2 text-center">Bienvenido al Portal de Gestión</h2>
+            <p class="text-slate-500 mb-10 text-center max-w-lg">Seleccione el módulo al que desea ingresar para gestionar actividades, realizar seguimientos o visualizar los eventos departamentales.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+                <!-- Card Junta -->
+                <div onclick="switchView('junta')" class="bg-white p-8 rounded-3xl border-2 border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-300 hover:-translate-y-2 transition-all cursor-pointer group flex flex-col items-center text-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-b from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors relative z-10 shadow-inner">
+                        <i data-lucide="briefcase" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-3 relative z-10">Seguimiento Junta Directiva</h3>
+                    <p class="text-sm text-slate-500 relative z-10">Gestione y monitoree las tareas, compromisos y seguimientos establecidos y ordenados por la Junta Directiva de la Cámara.</p>
+                    <div class="mt-6 text-blue-600 font-bold text-sm flex items-center gap-1 group-hover:gap-2 transition-all relative z-10">
+                        Ingresar al Módulo <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </div>
+                </div>
+                
+                <!-- Card Calendario -->
+                <div onclick="switchView('calendario')" class="bg-white p-8 rounded-3xl border-2 border-slate-100 shadow-sm hover:shadow-xl hover:border-green-300 hover:-translate-y-2 transition-all cursor-pointer group flex flex-col items-center text-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-b from-green-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="w-20 h-20 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-green-600 group-hover:text-white transition-colors relative z-10 shadow-inner">
+                        <i data-lucide="calendar-days" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-3 relative z-10">Calendario de Departamentos</h3>
+                    <p class="text-sm text-slate-500 relative z-10">Visualice, asigne y lleve el control del cronograma de eventos y actividades programados por las Direcciones de la entidad.</p>
+                    <div class="mt-6 text-green-600 font-bold text-sm flex items-center gap-1 group-hover:gap-2 transition-all relative z-10">
+                        Ingresar al Módulo <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <!-- Grid de Estadísticas y Gráfica -->
+        <!-- ========================================== -->
+        <!-- PANTALLA 2: MÓDULO JUNTA DIRECTIVA         -->
+        <!-- ========================================== -->
+        <div id="juntaView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
-                <!-- Tarjetas de Totales -->
                 <div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
-                        <div>
-                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Cumplidas</p>
-                            <h3 class="text-3xl font-bold text-green-600" id="count-cumplida">0</h3>
-                        </div>
+                        <div><p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Cumplidas</p><h3 class="text-3xl font-bold text-green-600" id="count-cumplida">0</h3></div>
                         <div class="bg-green-50 p-3 rounded-full text-green-600"><i data-lucide="check-circle" class="w-6 h-6"></i></div>
                     </div>
                     <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
-                        <div>
-                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Pendientes</p>
-                            <h3 class="text-3xl font-bold text-red-600" id="count-pendiente">0</h3>
-                        </div>
+                        <div><p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Pendientes</p><h3 class="text-3xl font-bold text-red-600" id="count-pendiente">0</h3></div>
                         <div class="bg-red-50 p-3 rounded-full text-red-600"><i data-lucide="clock" class="w-6 h-6"></i></div>
                     </div>
                     <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
-                        <div>
-                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">En Proceso</p>
-                            <h3 class="text-3xl font-bold text-amber-600" id="count-proceso">0</h3>
-                        </div>
+                        <div><p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">En Proceso</p><h3 class="text-3xl font-bold text-amber-600" id="count-proceso">0</h3></div>
                         <div class="bg-amber-50 p-3 rounded-full text-amber-600"><i data-lucide="activity" class="w-6 h-6"></i></div>
                     </div>
                 </div>
-
-                <!-- Contenedor de la Gráfica -->
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-center relative min-h-[160px]">
-                    <div class="h-32 w-full flex justify-center">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                    <div id="chartEmptyState" class="absolute inset-0 flex items-center justify-center bg-white/50 hidden">
-                        <span class="text-xs text-slate-400">Sin datos</span>
-                    </div>
+                    <div class="h-32 w-full flex justify-center"><canvas id="statusChart"></canvas></div>
+                    <div id="chartEmptyState" class="absolute inset-0 flex items-center justify-center bg-white/50 hidden"><span class="text-xs text-slate-400">Sin datos</span></div>
                 </div>
             </div>
-
-            <!-- Tabla de Actividades -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-10">
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse min-w-[1000px]">
+                    <table class="w-full text-left border-collapse table-auto">
                         <thead>
-                            <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
-                                <th class="px-6 py-4 w-12 text-center">#</th> <!-- Columna Consecutivo -->
-                                <th class="px-6 py-4">Fecha</th>
-                                <th class="px-6 py-4 w-1/3">Actividad / Tarea</th>
-                                <th class="px-6 py-4">Solicitante</th>
-                                <th class="px-6 py-4 w-40">Responsable</th>
-                                <th class="px-6 py-4">Estado</th>
-                                <th class="px-6 py-4 text-right">DETALLES</th>
+                            <tr class="bg-slate-50 text-slate-500 text-[10px] sm:text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+                                <th class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4">Fecha</th>
+                                <th class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 w-1/4 sm:w-1/3">Actividad / Tarea</th>
+                                <th class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4">Solicitante</th>
+                                <th class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4">Responsable</th>
+                                <th class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4">Estado</th>
+                                <th class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-right">DETALLES</th>
                             </tr>
                         </thead>
-                        <tbody id="taskTableBody" class="divide-y divide-slate-100">
-                            <!-- JS Injected -->
-                        </tbody>
+                        <tbody id="taskTableBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
                 <div id="noResults" class="hidden p-20 text-center">
-                    <i data-lucide="folder-search" class="mx-auto w-12 h-12 text-slate-300 mb-4"></i>
-                    <p class="text-slate-500 font-medium">No se encontraron resultados.</p>
+                    <i data-lucide="folder-search" class="mx-auto w-12 h-12 text-slate-300 mb-4"></i><p class="text-slate-500 font-medium">No se encontraron resultados.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Modal Configuración API -->
-        <div id="configModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-            <div class="modal-overlay absolute inset-0" onclick="closeConfigModal()"></div>
-            <div class="bg-white rounded-2xl w-full max-w-md relative z-10 shadow-2xl overflow-hidden p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-bold text-slate-900">Conectar Google Sheet</h2>
-                    <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
+        <!-- ========================================== -->
+        <!-- PANTALLA 3: MÓDULO CALENDARIO DE DEPTOS    -->
+        <!-- ========================================== -->
+        <div id="calendarioView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+            
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-4 sm:p-6 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-green-100 text-green-700 rounded-xl hidden sm:block"><i data-lucide="calendar-check" class="w-6 h-6"></i></div>
+                    <div>
+                        <h2 id="monthYearLabel" class="text-xl sm:text-2xl font-bold text-slate-800 capitalize">Cargando...</h2>
+                        <p class="text-[10px] sm:text-xs text-slate-500 font-medium mt-1">Cronograma de eventos institucionales por departamento</p>
+                    </div>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-xs text-blue-800">
-                    <strong>Importante:</strong> Asegúrate de que tu implementación en Google Script tenga el acceso configurado como <u>"Cualquier usuario"</u>. Si no, la conexión fallará.
+                
+                <!-- Selector MÓVIL para áreas -->
+                <div class="w-full sm:hidden mb-2">
+                    <select id="calendarDeptFilterMobile" onchange="document.getElementById('calendarDeptFilter').value=this.value; renderCalendar();" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 font-medium text-slate-600">
+                        <option value="all">Todas las Áreas</option>
+                    </select>
                 </div>
-                <p class="text-sm text-slate-600 mb-4">
-                    Pega aquí la URL de la Aplicación Web de tu Google Apps Script (debe terminar en <code>/exec</code>).
-                </p>
-                <input type="text" id="apiUrlInput" class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm mb-4 focus:ring-2 focus:ring-blue-500" placeholder="https://script.google.com/macros/s/.../exec">
-                <div class="flex justify-end gap-2">
-                    <button onclick="disconnectAPI()" class="px-4 py-2 text-red-600 text-sm font-bold hover:bg-red-50 rounded-lg">Desconectar</button>
-                    <button onclick="saveAPI()" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700">Guardar y Sincronizar</button>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 bg-slate-200 rounded-sm inline-block sm:hidden"></span>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase sm:hidden">Festivos / FDS</span>
+                    </div>
+                    <div class="flex">
+                        <button onclick="changeMonth(0)" class="px-3 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors mr-2">Hoy</button>
+                        <button onclick="changeMonth(-1)" class="p-2 border border-slate-200 rounded-l-lg hover:bg-slate-50 transition-colors text-slate-600"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                        <button onclick="changeMonth(1)" class="p-2 border border-slate-200 border-l-0 rounded-r-lg hover:bg-slate-50 transition-colors text-slate-600"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                    </div>
                 </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-10">
+                <div class="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
+                    <div class="py-3 text-center text-[10px] sm:text-xs font-bold text-red-500 uppercase tracking-wider bg-red-50/50">Dom</div>
+                    <div class="py-3 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider border-l border-slate-200">Lun</div>
+                    <div class="py-3 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider border-l border-slate-200">Mar</div>
+                    <div class="py-3 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider border-l border-slate-200">Mié</div>
+                    <div class="py-3 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider border-l border-slate-200">Jue</div>
+                    <div class="py-3 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider border-l border-slate-200">Vie</div>
+                    <div class="py-3 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider border-l border-slate-200 bg-slate-50/50">Sáb</div>
+                </div>
+                <!-- Grid del Calendario Inyectado por JS -->
+                <div id="calendarGrid" class="grid grid-cols-7 bg-slate-200 gap-px">
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-center gap-4 text-xs font-medium text-slate-500 pb-6">
+                <div class="flex items-center gap-1"><span class="w-3 h-3 bg-white border border-slate-200 rounded-sm"></span> Día Hábil</div>
+                <div class="flex items-center gap-1"><span class="w-3 h-3 bg-slate-100 rounded-sm border border-slate-200"></span> Fines de Semana / Festivos</div>
             </div>
         </div>
 
-        <!-- Modal Detalles y Actualización -->
+        <!-- ========================================== -->
+        <!-- MODALES                                    -->
+        <!-- ========================================== -->
+
+        <!-- Modal Detalles Junta Directiva -->
         <div id="taskModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
             <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
             <div class="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto relative z-10 shadow-2xl flex flex-col">
-                <!-- Header Modal -->
                 <div class="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between flex-shrink-0 z-20">
                     <h2 class="text-xl font-bold text-slate-900">Detalles de Actividad</h2>
                     <button onclick="closeModal()" class="p-2 hover:bg-slate-100 rounded-full text-slate-400"><i data-lucide="x"></i></button>
                 </div>
-                
-                <!-- Body Modal -->
                 <div class="p-8 overflow-y-auto flex-grow">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div class="space-y-6">
-                            <!-- Información Principal -->
                             <div>
                                 <label class="text-[10px] font-bold uppercase text-blue-600 mb-1 block">Tarea / Actividad</label>
                                 <p id="modalDesc" class="text-slate-700 font-medium text-lg leading-snug"></p>
@@ -240,30 +313,23 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Solicitante</label>
-                                    <p id="modalSolicitante" class="text-slate-700 font-semibold"></p>
+                                    <div id="modalSolicitante" class="flex flex-col gap-1"></div>
                                 </div>
                                 <div>
                                     <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Responsable</label>
                                     <div id="modalResponsable" class="flex flex-col gap-1"></div>
                                 </div>
                             </div>
-
-                            <!-- Estado Actual -->
                             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                                 <div class="flex items-center justify-between mb-2">
                                     <label class="text-[10px] font-bold uppercase text-slate-500 block">Estado Actual</label>
                                     <div id="modalStatusDisplay"></div>
                                 </div>
-                                
                                 <label class="text-[10px] font-bold uppercase text-slate-500 block mb-1">Historial / Detalles</label>
                                 <p id="modalDetalleAccion" class="text-slate-700 text-sm italic bg-white p-3 rounded border border-slate-100 whitespace-pre-line"></p>
                             </div>
-
-                            <!-- Sección de Actualización de Estado -->
                             <div id="updateStatusSection" class="hidden bg-blue-50 p-5 rounded-xl border border-blue-200 shadow-inner">
-                                <h3 class="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
-                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Seguimiento
-                                </h3>
+                                <h3 class="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Seguimiento</h3>
                                 <form id="statusUpdateForm" onsubmit="saveStatusUpdate(event)">
                                     <input type="hidden" id="updateTaskId">
                                     <div class="grid grid-cols-2 gap-3 mb-3">
@@ -291,33 +357,24 @@
                                 </form>
                             </div>
                         </div>
-
-                        <!-- Columna Derecha: Evidencia -->
                         <div class="space-y-4">
-                            <!-- Facebook (SIN VISTA PREVIA) -->
                              <label class="text-xs font-bold uppercase tracking-widest text-blue-600 block">Enlace Redes</label>
-                             <div id="facebookLinkContainer" class="border rounded-xl p-4 bg-slate-50 flex items-center justify-center border-dashed border-slate-300">
-                                <!-- Contenido inyectado por JS -->
-                             </div>
-
-                             <!-- Imagen Adjunta (AHORA SOLO ENLACE) -->
+                             <div id="facebookLinkContainer" class="border rounded-xl p-4 bg-slate-50 flex items-center justify-center border-dashed border-slate-300"></div>
                              <label class="text-xs font-bold uppercase tracking-widest text-blue-600 block mt-4">Enlace Evidencia Drive</label>
-                             <div id="imageLinkContainer" class="border rounded-xl p-4 bg-slate-50 flex items-center justify-center border-dashed border-slate-300">
-                                 <!-- Contenido inyectado por JS -->
-                             </div>
+                             <div id="imageLinkContainer" class="border rounded-xl p-4 bg-slate-50 flex items-center justify-center border-dashed border-slate-300"></div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Footer Modal -->
                 <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-between items-center flex-shrink-0 rounded-b-2xl">
                     <div class="flex gap-2">
                         <button id="btnDeleteTask" class="px-4 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2">
                             <i data-lucide="trash-2" class="w-4 h-4"></i> <span>Eliminar</span>
                         </button>
                     </div>
-                    
                     <div class="flex gap-2">
+                         <button id="btnSendReminder" class="px-4 py-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-sm">
+                             <i data-lucide="bell-ring" class="w-4 h-4"></i> Enviar Recordatorio
+                         </button>
                          <button id="btnEditTask" class="px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
                              <i data-lucide="pencil" class="w-4 h-4"></i> Editar Actividad
                          </button>
@@ -332,14 +389,12 @@
             </div>
         </div>
 
-        <!-- Modal Formulario (Crear / Editar) -->
-        <div id="formActivityModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <!-- Modal Formulario Junta Directiva (Crear / Editar) -->
+        <div id="formActivityModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
             <div class="modal-overlay absolute inset-0" onclick="closeFormModal()"></div>
             <div class="bg-white rounded-2xl w-full max-w-xl relative z-10 shadow-2xl overflow-hidden">
                 <form id="activityForm" onsubmit="saveActivity(event)">
-                    <!-- Campo oculto para ID (si es edición) -->
                     <input type="hidden" name="id" id="formTaskId">
-
                     <div class="bg-blue-600 px-6 py-4 text-white flex justify-between items-center">
                         <h2 class="text-lg font-bold" id="formTitle">Agregar Nueva Actividad</h2>
                         <button type="button" onclick="closeFormModal()" class="text-blue-100 hover:text-white"><i data-lucide="x"></i></button>
@@ -365,50 +420,51 @@
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Solicitante</label>
-                                <div class="relative">
-                                    <select name="requester" id="formRequesterSelect" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500 appearance-none">
-                                    </select>
-                                    <i data-lucide="chevron-down" class="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Solicitante(s) *</label>
+                                <div class="flex gap-2">
+                                    <div class="relative flex-grow">
+                                        <input type="text" id="formRequesterInput" list="requestersList" onkeydown="if(event.key === 'Enter') { event.preventDefault(); addRequesterToForm(); }" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Nombre del solicitante...">
+                                        <datalist id="requestersList"></datalist>
+                                    </div>
+                                    <button type="button" onclick="addRequesterToForm()" class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-bold text-xs flex items-center gap-1 shadow-sm">
+                                        <i data-lucide="plus" class="w-4 h-4"></i> Añadir
+                                    </button>
                                 </div>
+                                <div id="requestersTagContainer" class="flex flex-wrap gap-2 mt-2"></div>
+                                <input type="hidden" name="requester" id="hiddenRequester">
                             </div>
                             <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Responsable</label>
-                                <div class="relative">
-                                    <select name="responsible" id="formResponsibleSelect" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500 appearance-none">
-                                    </select>
-                                    <i data-lucide="chevron-down" class="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Responsables (Principal y Apoyos) *</label>
+                                <div class="flex gap-2">
+                                    <div class="relative flex-grow">
+                                        <input type="text" id="formResponsibleInput" list="responsiblesList" onkeydown="if(event.key === 'Enter') { event.preventDefault(); addResponsibleToForm(); }" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Nombre del responsable...">
+                                        <datalist id="responsiblesList"></datalist>
+                                    </div>
+                                    <button type="button" onclick="addResponsibleToForm()" class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-bold text-xs flex items-center gap-1 shadow-sm">
+                                        <i data-lucide="plus" class="w-4 h-4"></i> Añadir
+                                    </button>
                                 </div>
+                                <div id="responsiblesTagContainer" class="flex flex-wrap gap-2 mt-2"></div>
+                                <input type="hidden" name="responsible" id="hiddenResponsible">
                             </div>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha de Monitoreo</label>
                             <input type="date" name="monitoring" id="formMonitoring" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                         </div>
-                        
-                        <!-- Sección Redes y Links -->
                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-3">
-                             <!-- Enlace Facebook -->
                             <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2">
-                                    <i data-lucide="facebook" class="w-3 h-3 text-blue-600"></i> Enlace Publicación Facebook
-                                </label>
-                                <input type="url" name="fb_link" id="formFbLink" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="https://www.facebook.com/...">
+                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2"><i data-lucide="facebook" class="w-3 h-3 text-blue-600"></i> Enlace Publicación Facebook</label>
+                                <input type="url" name="fb_link" id="formFbLink" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                             </div>
-
-                            <!-- CAMBIO: Enlace Drive en lugar de Subir Archivo -->
                             <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2">
-                                    <i data-lucide="folder" class="w-3 h-3 text-green-600"></i> Enlace Carpeta/Archivo Drive
-                                </label>
-                                <input type="url" name="image_url" id="formDriveLink" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="https://drive.google.com/...">
-                                <p class="text-[9px] text-slate-400 mt-1">Pega aquí el enlace directo a la carpeta o archivo de evidencia.</p>
+                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2"><i data-lucide="folder" class="w-3 h-3 text-green-600"></i> Enlace Carpeta/Archivo Drive</label>
+                                <input type="url" name="image_url" id="formDriveLink" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                             </div>
                         </div>
-
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Detalle Acción Inicial</label>
-                            <textarea name="detail" id="formDetail" rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Observaciones preliminares..."></textarea>
+                            <textarea name="detail" id="formDetail" rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500"></textarea>
                         </div>
                     </div>
                     <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
@@ -418,237 +474,552 @@
                 </form>
             </div>
         </div>
+
+        <!-- Modal Rango de Fechas para PDF -->
+        <div id="pdfRangeModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+            <div class="modal-overlay absolute inset-0" onclick="closePdfRangeModal()"></div>
+            <div class="bg-white rounded-2xl w-full max-w-sm relative z-10 shadow-2xl overflow-hidden p-6">
+                <div class="flex items-center gap-3 mb-4 text-slate-800">
+                    <div class="p-2 bg-red-100 text-red-600 rounded-lg"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+                    <h2 class="text-lg font-bold">Generar Reporte PDF</h2>
+                </div>
+                <p class="text-xs text-slate-500 mb-4 font-medium">Seleccione el periodo que desea exportar de los eventos del departamento.</p>
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Fecha Desde</label>
+                        <input type="date" id="pdfStartDate" class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-red-500">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Fecha Hasta</label>
+                        <input type="date" id="pdfEndDate" class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-red-500">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button onclick="closePdfRangeModal()" class="px-4 py-2 text-slate-500 font-bold text-sm">Cancelar</button>
+                    <button onclick="generateCalendarPDF()" class="px-5 py-2 bg-red-600 text-white rounded-lg font-bold text-sm hover:bg-red-700 transition-colors shadow flex items-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4"></i> Descargar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Formulario de EVENTOS (Calendario) -->
+        <div id="formEventModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+            <div class="modal-overlay absolute inset-0" onclick="closeEventFormModal()"></div>
+            <div class="bg-white rounded-2xl w-full max-w-xl relative z-10 shadow-2xl overflow-hidden">
+                <form id="eventForm" onsubmit="saveEvent(event)">
+                    <input type="hidden" name="id" id="formEventId">
+                    <div class="bg-green-600 px-6 py-4 text-white flex justify-between items-center">
+                        <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="calendar-plus" class="w-5 h-5"></i> <span id="eventFormTitle">Registrar Nuevo Evento</span></h2>
+                        <button type="button" onclick="closeEventFormModal()" class="text-green-100 hover:text-white transition-colors"><i data-lucide="x"></i></button>
+                    </div>
+                    <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                        <!-- Departamentos -->
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Área / Departamento que Reporta *</label>
+                            <div class="relative">
+                                <select name="department" id="formEventDept" onchange="updateEventDirector()" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 appearance-none font-medium">
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+                        <!-- Director -->
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Director del Área (Automático)</label>
+                            <div class="relative">
+                                <input type="text" name="director" id="formEventDir" readonly class="w-full px-4 py-2 bg-slate-200 border-none rounded-lg text-sm text-slate-600 font-semibold cursor-not-allowed pl-10">
+                                <i data-lucide="user" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Fecha y Hora (Inicio y Fin - Solo horas en punto) -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha *</label>
+                                <input type="date" name="date" id="formEventDate" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Hora Inicio *</label>
+                                <div class="relative">
+                                    <select name="startTime" id="formEventStartTime" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 appearance-none font-bold">
+                                        <!-- Opciones generadas por JS -->
+                                    </select>
+                                    <i data-lucide="clock" class="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Hora Fin *</label>
+                                <div class="relative">
+                                    <select name="endTime" id="formEventEndTime" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 appearance-none font-bold">
+                                        <!-- Opciones generadas por JS -->
+                                    </select>
+                                    <i data-lucide="clock" class="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Lugar -->
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Lugar de Ejecución *</label>
+                            <input type="text" name="location" id="formEventLocation" required placeholder="Ej. Auditorio Principal..." class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500">
+                        </div>
+                        
+                        <!-- Nombre y Descripcion -->
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Nombre del Evento *</label>
+                            <input type="text" name="name" id="formEventName" required placeholder="Ej. Capacitación Empresarial Nivel 1" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 font-bold text-slate-800">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Descripción de la Actividad</label>
+                            <textarea name="description" id="formEventDesc" rows="3" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500" placeholder="Detalles ampliados de la actividad..."></textarea>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
+                        <button type="button" onclick="closeEventFormModal()" class="px-4 py-2 text-slate-500 font-bold text-sm">Cancelar</button>
+                        <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg font-bold text-sm shadow-md hover:bg-green-700 transition-all flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> Guardar Evento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal Detalles del EVENTO (Calendario) -->
+        <div id="eventDetailsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+            <div class="modal-overlay absolute inset-0" onclick="closeEventDetailsModal()"></div>
+            <div class="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl overflow-hidden flex flex-col">
+                <div class="p-6 relative border-b border-slate-100" id="viewEventHeaderBg">
+                    <button onclick="closeEventDetailsModal()" class="absolute top-4 right-4 p-2 hover:bg-black/10 rounded-full transition-colors text-slate-700"><i data-lucide="x"></i></button>
+                    <div class="inline-flex px-3 py-1 bg-white/80 text-slate-800 text-[10px] font-bold uppercase tracking-widest rounded-full mb-3 shadow-sm border border-black/5">Detalle de Evento</div>
+                    <h2 id="viewEventName" class="text-2xl font-bold text-slate-900 leading-tight"></h2>
+                </div>
+                
+                <div class="p-6 space-y-4 bg-white flex-grow">
+                    <div class="flex items-start gap-4">
+                        <div class="mt-1 p-2 bg-slate-100 text-slate-600 rounded-lg"><i data-lucide="clock" class="w-5 h-5"></i></div>
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-slate-400 block mb-0.5">Fecha y Horario</label>
+                            <p class="text-slate-800 font-medium"><span id="viewEventDate"></span> <br/> De <span id="viewEventTime" class="font-bold text-blue-600"></span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="mt-1 p-2 bg-slate-100 text-slate-600 rounded-lg"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-slate-400 block mb-0.5">Lugar</label>
+                            <p id="viewEventLocation" class="text-slate-800 font-medium"></p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="mt-1 p-2 bg-slate-100 text-slate-600 rounded-lg"><i data-lucide="building" class="w-5 h-5"></i></div>
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-slate-400 block mb-0.5">Departamento</label>
+                            <p id="viewEventDept" class="text-slate-800 font-bold text-sm"></p>
+                            <p id="viewEventDir" class="text-slate-500 text-xs mt-0.5"></p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <label class="text-[10px] font-bold uppercase text-slate-400 block mb-2">Descripción</label>
+                        <p id="viewEventDesc" class="text-slate-700 text-sm whitespace-pre-line"></p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-between items-center rounded-b-2xl">
+                    <button id="btnDeleteEvent" class="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold transition-all flex items-center gap-1.5">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> <span>Eliminar</span>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <button id="btnEditEvent" class="px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-500 hover:text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-1.5">
+                            <i data-lucide="pencil" class="w-4 h-4"></i> Editar
+                        </button>
+                        <button onclick="closeEventDetailsModal()" class="px-5 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-lg text-sm font-bold transition-colors">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // --- CONFIGURACIÓN PÚBLICA (PARA GITHUB PAGES) ---
-        // IMPORTANTE: Pega aquí tu URL de Google Apps Script (la que termina en /exec) dentro de las comillas.
-        // Ejemplo: const PUBLIC_API_URL = "https://script.google.com/macros/s/AKfycb.../exec";
-        const PUBLIC_API_URL = "https://script.google.com/macros/s/AKfycbxb62P_JpfUSri098-hgoP9RiexbIOE-ChDAzBZaoyQNUnNNnK6pzWqKklBvzd_X_1KNA/exec"; 
+        // ==========================================
+        // DATOS GLOBALES, COLORES Y FESTIVOS
+        // ==========================================
 
-        // Datos por defecto
-        let tasks = [
-            { id: 1, date: "2026-01-29", task: "Fortalecer el aprendizaje institucional mediante el intercambio de experiencias con otras Cámaras de Comercio.", requester: "Alexander Sanchez", responsible: "Ivan Florez", monitoring: "2026-02-04", status: "pendiente", detail: "Inicio de gestión", fb_link: "", image_url: "" }
+        const BOARD_MEMBERS = [
+            "Dr. Alexander Sánchez",
+            "Dr. Cristian Huertas",
+            "Dr. Edgar López",
+            "Dr. Edwin Pérez",
+            "Dr. Iván Flórez",
+            "Dr. Jesús Verdugo",
+            "Dr. Miguel Leyton",
+            "Dr. Néstor Pantoja",
+            "Dr. William Bastidas",
+            "Dr. Pedro Alberto Jácome"
         ];
 
-        // Usamos la URL pública si existe, sino buscamos en localStorage (Modo Local)
-        let API_URL = PUBLIC_API_URL || localStorage.getItem('google_sheet_api_url') || "";
+        const STAFF_MEMBERS = [
+            "Iván Javier Flórez",
+            "Alexandra Flórez Ortega",
+            "Jhon Jairo Suárez",
+            "Jesús Andrés Pérez",
+            "Jenifer Paguay Goyes",
+            "Alex Gabriel Oviedo",
+            "Jenifer Leonela Imbaquí",
+            "Julio David Jácome",
+            "Ingrid Carolina Cárdenas"
+        ];
         
-        let editingTaskId = null;
-        let chartInstance = null; // Instancia de la gráfica
+        const DEPARTAMENTOS = {
+            "PRESIDENCIA EJECUTIVA": "Iván Javier Flórez Portilla",
+            "DIRECCIÓN JURÍDICA Y DE REGISTRO PÚBLICO": "Alexandra Flórez Ortega",
+            "DIRECCIÓN ADMINISTRATIVA Y DE TALENTO HUMANO": "Sandra Patiño Camacho",
+            "DIRECCIÓN DE COMPETITIVIDAD REGIONAL Y PROYECTOS": "Jhon Jairo Suárez",
+            "DIRECCIÓN DE CAPACITACIÓN EMPRESARIAL": "Jesús Andrés Pérez",
+            "DIRECCIÓN DE CONCILIACIÓN Y ARBITRAJE": "Alex Gabriel Oviedo",
+            "DIRECCIÓN DE ESTUDIOS ECONÓMICOS Y ALIANZAS ESTRATÉGICAS": "Jennifer Farneth Paguay",
+            "DIRECCIÓN FINANCIERA Y CONTABLE": "Jenifer Leonela Imbaquí",
+            "OFICINA DE CONTROL INTERNO Y CALIDAD": "Julio David Jácome"
+        };
 
-        // --- FUNCION PARA FORMATEAR FECHAS ---
-        function formatDate(dateStr) {
-            if (!dateStr) return "";
-            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                const [year, month, day] = dateStr.split('-');
-                return `${day}/${month}/${year}`;
-            }
-            const date = new Date(dateStr);
-            if (!isNaN(date.getTime())) {
-                return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }); 
-            }
-            return dateStr;
-        }
+        const DEPT_COLORS = {
+            "PRESIDENCIA EJECUTIVA": "bg-blue-100 text-blue-800 border-blue-200",
+            "DIRECCIÓN JURÍDICA Y DE REGISTRO PÚBLICO": "bg-indigo-100 text-indigo-800 border-indigo-200",
+            "DIRECCIÓN ADMINISTRATIVA Y DE TALENTO HUMANO": "bg-purple-100 text-purple-800 border-purple-200",
+            "DIRECCIÓN DE COMPETITIVIDAD REGIONAL Y PROYECTOS": "bg-pink-100 text-pink-800 border-pink-200",
+            "DIRECCIÓN DE CAPACITACIÓN EMPRESARIAL": "bg-rose-100 text-rose-800 border-rose-200",
+            "DIRECCIÓN DE CONCILIACIÓN Y ARBITRAJE": "bg-orange-100 text-orange-800 border-orange-200",
+            "DIRECCIÓN DE ESTUDIOS ECONÓMICOS Y ALIANZAS ESTRATÉGICAS": "bg-amber-100 text-amber-800 border-amber-200",
+            "DIRECCIÓN FINANCIERA Y CONTABLE": "bg-emerald-100 text-emerald-800 border-emerald-200",
+            "OFICINA DE CONTROL INTERNO Y CALIDAD": "bg-cyan-100 text-cyan-800 border-cyan-200"
+        };
 
-        function toInputDate(dateStr) {
-            if (!dateStr) return "";
-            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr;
-            if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-                const [day, month, year] = dateStr.split('/');
-                return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-            }
-            const date = new Date(dateStr);
-            if (!isNaN(date.getTime())) {
-                 return date.toISOString().split('T')[0];
-            }
-            return "";
-        }
+        const HOLIDAYS_CO = [
+            "2026-01-01", "2026-01-12", "2026-03-23", "2026-04-02", "2026-04-03", "2026-05-01", "2026-05-18",
+            "2026-06-08", "2026-06-15", "2026-06-29", "2026-07-20", "2026-08-07", "2026-08-17", "2026-10-12",
+            "2026-11-02", "2026-11-16", "2026-12-08", "2026-12-25",
+            "2027-01-01", "2027-01-11", "2027-03-22", "2027-03-25", "2027-03-26", "2027-05-01", "2027-05-10",
+            "2027-05-31", "2027-06-07", "2027-07-05", "2027-07-20", "2027-08-07", "2027-08-16", "2027-10-18",
+            "2027-11-01", "2027-11-15", "2027-12-08", "2027-12-25"
+        ];
 
-        // --- CHART.JS CONFIGURACIÓN ---
-        function updateChart(filteredTasks) {
-            const ctx = document.getElementById('statusChart').getContext('2d');
+        let currentView = 'landing'; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbxsFM9UFshN0u7waQO4g31EFj0bEIPLnRjaDFQSd2k-laVUojzuZ8J98Omn6sRGJ0stcA/exec";
+        
+        let tasks = [];
+        let chartInstance = null;
+
+        let events = [];
+        let calCurrentMonth = new Date().getMonth();
+        let calCurrentYear = new Date().getFullYear();
+
+        // ==========================================
+        // LOGO EN BASE64 PARA PDF (SOLUCIÓN DEFINITIVA)
+        // ==========================================
+        // Pega aquí el código Base64 de tu logo. Debe empezar con "data:image/png;base64,..." o "data:image/jpeg;base64,..."
+        const LOGO_BASE64 = ""; 
+
+        // ==========================================
+        // SISTEMA DE NAVEGACIÓN Y UTILIDADES
+        // ==========================================
+        function switchView(view) {
+            currentView = view;
+            document.getElementById('landingView').classList.add('hidden');
+            document.getElementById('juntaView').classList.add('hidden');
+            document.getElementById('calendarioView').classList.add('hidden');
             
-            const counts = {
-                cumplida: filteredTasks.filter(t => t.status?.toLowerCase() === 'cumplida').length,
-                pendiente: filteredTasks.filter(t => t.status?.toLowerCase() === 'pendiente').length,
-                proceso: filteredTasks.filter(t => t.status?.toLowerCase() === 'en proceso').length
-            };
-
-            const total = counts.cumplida + counts.pendiente + counts.proceso;
+            const backBtn = document.getElementById('backHomeBtn');
+            const headActs = document.getElementById('headerActions');
+            const jActs = document.getElementById('juntaActions');
+            const cActs = document.getElementById('calendarioActions');
             
-            // Mostrar estado vacío si no hay datos
-            if (total === 0) {
-                document.getElementById('chartEmptyState').classList.remove('hidden');
-                if(chartInstance) chartInstance.destroy();
-                return;
-            } else {
-                document.getElementById('chartEmptyState').classList.add('hidden');
-            }
-
-            if (chartInstance) {
-                chartInstance.data.datasets[0].data = [counts.cumplida, counts.pendiente, counts.proceso];
-                chartInstance.update();
-            } else {
-                chartInstance = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Cumplida', 'Pendiente', 'En Proceso'],
-                        datasets: [{
-                            data: [counts.cumplida, counts.pendiente, counts.proceso],
-                            backgroundColor: [
-                                '#16a34a', // green-600
-                                '#dc2626', // red-600
-                                '#d97706'  // amber-600
-                            ],
-                            borderWidth: 0,
-                            hoverOffset: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '65%',
-                        plugins: {
-                            legend: {
-                                display: false // Ocultamos leyenda porque ya tenemos las tarjetas
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        let value = context.raw;
-                                        let percentage = Math.round((value / total) * 100) + '%';
-                                        return label + value + ' (' + percentage + ')';
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-
-        // --- CONEXIÓN API ---
-        async function fetchTasksFromAPI() {
-            if (!API_URL) return;
-            if (!API_URL.includes('/exec')) {
-                // Solo alertar si estamos en modo local manual
-                if (!PUBLIC_API_URL) {
-                     alert("Error: URL inválida. Usa la que termina en /exec.");
-                     updateConnectionStatus(true, "URL Inválida", "bg-red-500");
-                }
-                return;
-            }
-            
-            showLoading(true, "Sincronizando...");
-            // Si es pública, mostramos un estado diferente
-            if(PUBLIC_API_URL) {
-                updateConnectionStatus(true, "Conectado (Público)", "bg-green-500");
-            } else {
-                updateConnectionStatus(true, "Sincronizando...", "bg-slate-400");
-            }
-            
-            try {
-                const response = await fetch(API_URL);
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") === -1) {
-                    throw new Error("Respuesta no válida. Revisa los permisos (Anyone).");
-                }
-                const data = await response.json();
-                tasks = data.map(t => ({...t, id: parseInt(t.id) || Date.now()}));
+            if(view === 'landing') {
+                document.getElementById('landingView').classList.remove('hidden');
+                backBtn.classList.add('hidden');
+                headActs.classList.add('hidden');
+            } else if (view === 'junta') {
+                document.getElementById('juntaView').classList.remove('hidden');
+                backBtn.classList.remove('hidden');
+                headActs.classList.remove('hidden');
+                jActs.classList.remove('hidden');
+                cActs.classList.add('hidden');
                 renderTasks();
-                populateFilters();
-                updateConnectionStatus(true, "Conectado a Google Sheets", "bg-green-500");
-            } catch (error) {
-                console.error("Error fetching:", error);
-                updateConnectionStatus(true, "Error de Conexión", "bg-red-500");
-                alert("Error de conexión con Google Sheets: " + error.message);
-            } finally {
-                showLoading(false);
+            } else if (view === 'calendario') {
+                document.getElementById('calendarioView').classList.remove('hidden');
+                backBtn.classList.remove('hidden');
+                headActs.classList.remove('hidden');
+                jActs.classList.add('hidden');
+                cActs.classList.remove('hidden');
+                renderCalendar();
             }
         }
 
-        async function saveToAPI() {
-            if (!API_URL) return;
-            showLoading(true, "Guardando datos...");
-            try {
-                await fetch(API_URL, {
-                    method: "POST",
-                    mode: "no-cors", 
-                    body: JSON.stringify(tasks)
-                });
-                console.log("Datos enviados a la nube");
-            } catch (error) {
-                console.error("Error saving:", error);
-                alert("Error al guardar en la nube.");
-            } finally {
-                showLoading(false);
-            }
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+            toastMsg.textContent = msg;
+            toast.className = `fixed bottom-4 right-4 transform transition-all z-[100] flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl text-white text-sm font-bold pointer-events-none`;
+            if (type === 'error') { toast.classList.add('bg-red-600'); toastIcon.setAttribute('data-lucide', 'alert-circle'); } 
+            else if (type === 'success') { toast.classList.add('bg-green-600'); toastIcon.setAttribute('data-lucide', 'check-circle'); } 
+            else { toast.classList.add('bg-blue-600'); toastIcon.setAttribute('data-lucide', 'info'); }
+            lucide.createIcons();
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 4000);
         }
 
-        // --- UI & HELPERS ---
-        function showLoading(show, text = "Cargando...") {
-            const indicator = document.getElementById('loadingIndicator');
-            const txt = document.getElementById('loadingText');
-            if (txt) txt.textContent = text;
-            if(show) indicator.classList.remove('hidden'); else indicator.classList.add('hidden');
+        function showSyncOverlay(show, text = "Sincronizando con la nube...") {
+            const overlay = document.getElementById('fullSyncOverlay');
+            document.getElementById('syncOverlayText').textContent = text;
+            if (show) overlay.classList.remove('hidden'); else overlay.classList.add('hidden');
         }
 
         function updateConnectionStatus(visible, text, dotClass = "bg-slate-400") {
             const el = document.getElementById('connectionStatus');
             const dot = document.getElementById('statusDot');
             const txt = document.getElementById('statusText');
-            const elMobile = document.getElementById('connectionStatusMobile');
-            const dotMobile = document.getElementById('statusDotMobile');
-            
-            if (visible) {
-                el.classList.remove('hidden');
-                elMobile.classList.remove('hidden');
-                elMobile.classList.add('flex');
+            if (visible) el.classList.remove('hidden'); else el.classList.add('hidden');
+            txt.textContent = text; dot.className = `w-2 h-2 rounded-full ${dotClass}`;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return "";
+            const str = String(dateStr);
+            if (str.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const [year, month, day] = str.split('-');
+                return `${day}/${month}/${year}`;
+            }
+            const date = new Date(str);
+            if (!isNaN(date.getTime())) { return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }); }
+            return str;
+        }
+
+        function toInputDate(dateStr) {
+            if (!dateStr) return "";
+            const str = String(dateStr);
+            if (str.match(/^\d{4}-\d{2}-\d{2}$/)) return str;
+            if (str.includes('T')) return str.split('T')[0];
+            const date = new Date(str);
+            if (!isNaN(date.getTime())) { 
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const dd = String(date.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+            return str;
+        }
+
+        function formatTimeDisplay(timeStr) {
+            if (!timeStr) return "";
+            const str = String(timeStr);
+            if (str.match(/^\d{2}:\d{2}$/) || str.match(/^\d{2}:\d{2}:\d{2}$/)) {
+                return str.substring(0, 5);
+            }
+            if (str.includes('T')) {
+                const date = new Date(str);
+                if (!isNaN(date.getTime())) {
+                    return date.toISOString().substring(11, 16);
+                }
+            }
+            return str;
+        }
+
+        // ==========================================
+        // CONEXIÓN API MODIFICADA PARA 2 MÓDULOS
+        // ==========================================
+
+        async function initSync() {
+            populateEventDepartments();
+            if(API_URL) {
+                updateConnectionStatus(true, "Conectando...");
+                await Promise.all([fetchDataFromAPI('junta'), fetchDataFromAPI('calendario')]);
             } else {
-                el.classList.add('hidden');
-                elMobile.classList.add('hidden');
-                elMobile.classList.remove('flex');
-            }
-            txt.textContent = text;
-            dot.className = `w-2 h-2 rounded-full ${dotClass}`;
-            dotMobile.className = `w-2 h-2 rounded-full ${dotClass}`;
-        }
-
-        function openConfigModal() {
-            // Si hay URL pública, avisamos que no es necesario configurar
-            if(PUBLIC_API_URL) {
-                alert("El tablero está configurado en modo PÚBLICO. No es necesario conectar manualmente.");
-                return;
-            }
-            document.getElementById('apiUrlInput').value = API_URL;
-            document.getElementById('configModal').classList.remove('hidden');
-        }
-
-        function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
-
-        function saveAPI() {
-            const url = document.getElementById('apiUrlInput').value.trim();
-            if (url) {
-                API_URL = url;
-                localStorage.setItem('google_sheet_api_url', url);
-                fetchTasksFromAPI();
-                closeConfigModal();
+                updateConnectionStatus(true, "Modo Local", "bg-slate-400");
+                renderTasks();
+                renderCalendar();
             }
         }
 
-        function disconnectAPI() {
-            if(PUBLIC_API_URL) return; // No permitir desconectar si es hardcoded
-            API_URL = "";
-            localStorage.removeItem('google_sheet_api_url');
-            updateConnectionStatus(true, "Modo Local", "bg-slate-400");
-            closeConfigModal();
-            alert("Desconectado.");
+        async function fetchDataFromAPI(module) {
+            if (!API_URL) return;
+            const finalUrl = API_URL.includes('?') ? `${API_URL}&type=${module}` : `${API_URL}?type=${module}`;
+            try {
+                const response = await fetch(finalUrl);
+                const data = await response.json();
+                
+                if (module === 'junta') {
+                    // Mapeo inteligente de variables (Soporta columnas en Inglés y en Español)
+                    tasks = data.map((t, idx) => ({
+                        id: t.id || t.ID || t.Id || Date.now() + idx,
+                        date: toInputDate(t.date || t.Fecha || t.fecha || t.FECHA || ""),
+                        task: t.task || t.Tarea || t.tarea || t.Actividad || t.actividad || t['Actividad / Tarea'] || "",
+                        requester: t.requester || t.Solicitante || t.solicitante || "",
+                        responsible: t.responsible || t.Responsable || t.responsable || "",
+                        status: t.status || t.Estado || t.estado || "pendiente",
+                        monitoring: toInputDate(t.monitoring || t.Monitoreo || t.monitoreo || t['Fecha Monitoreo'] || ""),
+                        detail: t.detail || t.Detalle || t.detalle || t['Detalle Acción Inicial'] || "",
+                        fb_link: t.fb_link || t.Facebook || t.facebook || t['Enlace Facebook'] || "",
+                        image_url: t.image_url || t.Drive || t.drive || t['Enlace Drive'] || ""
+                    }));
+                    if(currentView === 'junta') { renderTasks(); populateFilters(); }
+                } else if (module === 'calendario') {
+                    events = data.map((e, idx) => ({
+                        id: e.id || e.ID || e.Id || Date.now() + idx,
+                        date: toInputDate(e.date || e.Fecha || e.fecha || e.FECHA || ""),
+                        startTime: formatTimeDisplay(e.startTime || e.horaInicio || e['Hora Inicio'] || ""),
+                        endTime: formatTimeDisplay(e.endTime || e.horaFin || e['Hora Fin'] || ""),
+                        time: e.time || e.Hora || e.hora || "",
+                        department: e.department || e.Departamento || e.departamento || e.Area || "",
+                        director: e.director || e.Director || e.director || "",
+                        location: e.location || e.Lugar || e.lugar || "",
+                        name: e.name || e.Evento || e.evento || e.Nombre || e.nombre || "",
+                        description: e.description || e.Descripcion || e.descripcion || ""
+                    }));
+                    if(currentView === 'calendario') renderCalendar();
+                }
+                updateConnectionStatus(true, "Conectado a Google Sheets", "bg-green-500");
+            } catch (error) {
+                console.error("Error fetching " + module + ":", error);
+                updateConnectionStatus(true, "Error de Conexión", "bg-red-500");
+                showToast(`Error al cargar datos de ${module}. Verifique permisos de Google Sheets.`, "error");
+            }
+        }
+
+        async function saveDataToAPI(module, payloadArray) {
+            if (!API_URL) return false;
+
+            const mappedPayload = payloadArray.map(item => {
+                if (module === 'junta') {
+                    return {
+                        ...item,
+                        ID: item.id, Id: item.id,
+                        Fecha: item.date, fecha: item.date,
+                        Tarea: item.task, tarea: item.task, Actividad: item.task, actividad: item.task, 'Actividad / Tarea': item.task,
+                        Solicitante: item.requester, solicitante: item.requester,
+                        Responsable: item.responsible, responsable: item.responsible,
+                        Estado: item.status, estado: item.status,
+                        Monitoreo: item.monitoring, monitoreo: item.monitoring, 'Fecha Monitoreo': item.monitoring,
+                        Detalle: item.detail, detalle: item.detail, 'Detalle Acción Inicial': item.detail,
+                        Facebook: item.fb_link, facebook: item.fb_link, 'Enlace Facebook': item.fb_link,
+                        Drive: item.image_url, drive: item.image_url, 'Enlace Drive': item.image_url
+                    };
+                } else if (module === 'calendario') {
+                    return {
+                        ...item,
+                        ID: item.id, Id: item.id,
+                        Fecha: item.date, fecha: item.date,
+                        'Hora Inicio': item.startTime, horaInicio: item.startTime,
+                        'Hora Fin': item.endTime, horaFin: item.endTime,
+                        Hora: item.time, hora: item.time,
+                        Departamento: item.department, departamento: item.department, Area: item.department,
+                        Director: item.director, director: item.director,
+                        Lugar: item.location, lugar: item.location,
+                        Evento: item.name, evento: item.name, Nombre: item.name, nombre: item.name,
+                        Descripcion: item.description, descripcion: item.description
+                    };
+                }
+                return item;
+            });
+
+            try {
+                await fetch(API_URL, {
+                    method: "POST", 
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8"
+                    },
+                    body: JSON.stringify({ type: module, payload: mappedPayload })
+                });
+                return true;
+            } catch (error) {
+                console.error("Error saving:", error);
+                showToast("Fallo al comunicarse con Google Sheets.", "error");
+                return false;
+            }
+        }
+
+        // ==========================================
+        // MÓDULO: JUNTA DIRECTIVA (Funcionalidad Restaurada)
+        // ==========================================
+
+        let formSelectedRequesters = [];
+        let formSelectedResponsibles = [];
+
+        function addRequesterToForm(name = null) {
+            const input = document.getElementById('formRequesterInput');
+            const val = (name || input.value).trim();
+            if (val) {
+                if (!formSelectedRequesters.some(r => r.toLowerCase() === val.toLowerCase())) {
+                    formSelectedRequesters.push(val);
+                    renderRequesterTags();
+                }
+                input.value = '';
+            }
+            input.focus();
+        }
+
+        function removeRequesterFromForm(idx) {
+            formSelectedRequesters.splice(idx, 1);
+            renderRequesterTags();
+        }
+
+        function renderRequesterTags() {
+            const container = document.getElementById('requestersTagContainer');
+            const hiddenInput = document.getElementById('hiddenRequester');
+            container.innerHTML = '';
+            
+            formSelectedRequesters.forEach((req, idx) => {
+                container.innerHTML += `
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold shadow-sm">
+                        ${req}
+                        <button type="button" onclick="removeRequesterFromForm(${idx})" class="hover:bg-indigo-200 rounded-full p-0.5 text-indigo-500 hover:text-indigo-800 transition-colors">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                        </button>
+                    </span>
+                `;
+            });
+            
+            hiddenInput.value = formSelectedRequesters.join(' - ');
+            lucide.createIcons();
+        }
+
+        function addResponsibleToForm(name = null) {
+            const input = document.getElementById('formResponsibleInput');
+            const val = (name || input.value).trim();
+            if (val) {
+                // Verificar que no esté duplicado antes de añadir
+                if (!formSelectedResponsibles.some(r => r.toLowerCase() === val.toLowerCase())) {
+                    formSelectedResponsibles.push(val);
+                    renderResponsibleTags();
+                }
+                input.value = '';
+            }
+            input.focus();
+        }
+
+        function removeResponsibleFromForm(idx) {
+            formSelectedResponsibles.splice(idx, 1);
+            renderResponsibleTags();
+        }
+
+        function renderResponsibleTags() {
+            const container = document.getElementById('responsiblesTagContainer');
+            const hiddenInput = document.getElementById('hiddenResponsible');
+            container.innerHTML = '';
+            
+            formSelectedResponsibles.forEach((resp, idx) => {
+                container.innerHTML += `
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold shadow-sm">
+                        ${resp}
+                        <button type="button" onclick="removeResponsibleFromForm(${idx})" class="hover:bg-blue-200 rounded-full p-0.5 text-blue-500 hover:text-blue-800 transition-colors">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                        </button>
+                    </span>
+                `;
+            });
+            
+            // Empaquetar el array en un string separado por guiones para guardar
+            hiddenInput.value = formSelectedResponsibles.join(' - ');
+            lucide.createIcons();
         }
 
         function processResponsibles(respString) {
@@ -659,38 +1030,35 @@
         function getUniqueValues(key) {
             const values = new Set();
             tasks.forEach(t => {
-                if(key === 'responsible') {
-                    processResponsibles(t.responsible).forEach(r => values.add(r));
-                } else if (key === 'requester') {
-                    if (t.requester) values.add(t.requester.trim());
-                }
+                if(key === 'responsible') { processResponsibles(t.responsible).forEach(r => values.add(r)); }
+                else if (key === 'requester') { processResponsibles(t.requester).forEach(r => values.add(r)); }
             });
             return Array.from(values).sort();
         }
 
         function populateFormDropdowns() {
-            const requesters = getUniqueValues('requester');
-            const responsibles = getUniqueValues('responsible');
-            const reqSelect = document.getElementById('formRequesterSelect');
-            const respSelect = document.getElementById('formResponsibleSelect');
-            
-            const currentReq = reqSelect.value;
-            const currentResp = respSelect.value;
+            const reqDataList = document.getElementById('requestersList');
+            reqDataList.innerHTML = '';
+            BOARD_MEMBERS.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                reqDataList.appendChild(opt);
+            });
 
-            reqSelect.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
-            requesters.forEach(r => reqSelect.add(new Option(r, r)));
-            
-            respSelect.innerHTML = '<option value="" disabled selected>Seleccione...</option>';
-            responsibles.forEach(r => respSelect.add(new Option(r, r)));
-            
-            if (currentReq) reqSelect.value = currentReq;
-            if (currentResp) respSelect.value = currentResp;
+            const respDataList = document.getElementById('responsiblesList');
+            respDataList.innerHTML = '';
+            STAFF_MEMBERS.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                respDataList.appendChild(opt);
+            });
         }
 
         function populateFilters() {
-            const allResp = new Set();
+            const allResp = new Set([...STAFF_MEMBERS]);
             tasks.forEach(t => { processResponsibles(t.responsible).forEach(r => allResp.add(r)); });
             const select = document.getElementById('responsibleFilter');
+            if(!select) return; 
             const currentVal = select.value;
             select.innerHTML = '<option value="all">Responsable</option>';
             Array.from(allResp).sort().forEach(name => {
@@ -711,15 +1079,56 @@
             }
         }
 
+        function updateChart(filteredTasks) {
+            const ctxEl = document.getElementById('statusChart');
+            if(!ctxEl) return;
+            const ctx = ctxEl.getContext('2d');
+            const counts = {
+                cumplida: filteredTasks.filter(t => t.status?.toLowerCase() === 'cumplida').length,
+                pendiente: filteredTasks.filter(t => t.status?.toLowerCase() === 'pendiente').length,
+                proceso: filteredTasks.filter(t => t.status?.toLowerCase() === 'en proceso').length
+            };
+            const total = counts.cumplida + counts.pendiente + counts.proceso;
+
+            if (total === 0) {
+                document.getElementById('chartEmptyState').classList.remove('hidden');
+                if(chartInstance) chartInstance.destroy();
+                chartInstance = null;
+                return;
+            } else { document.getElementById('chartEmptyState').classList.add('hidden'); }
+
+            if (chartInstance) {
+                chartInstance.data.datasets[0].data = [counts.cumplida, counts.pendiente, counts.proceso];
+                chartInstance.update();
+            } else {
+                chartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Cumplida', 'Pendiente', 'En Proceso'],
+                        datasets: [{
+                            data: [counts.cumplida, counts.pendiente, counts.proceso],
+                            backgroundColor: ['#16a34a', '#dc2626', '#d97706'],
+                            borderWidth: 0, hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: '65%',
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return `${c.label}: ${c.raw}`; } } } }
+                    }
+                });
+            }
+        }
+
         function renderTasks() {
-            tasks.sort((a, b) => new Date(b.date) - new Date(a.date));
+            // Ordenamiento seguro validando que la fecha exista
+            tasks.sort((a, b) => (new Date(b.date).getTime() || 0) - (new Date(a.date).getTime() || 0));
             const fStatus = document.getElementById('statusFilter').value;
             const fResp = document.getElementById('responsibleFilter').value;
             const qTask = document.getElementById('taskSearchInput').value.toLowerCase();
             const tbody = document.getElementById('taskTableBody');
             const noRes = document.getElementById('noResults');
             tbody.innerHTML = '';
-            
+
             const filtered = tasks.filter(t => {
                 const normalizedResps = processResponsibles(t.responsible);
                 const mStat = fStatus === 'all' || (t.status && t.status.toLowerCase() === fStatus.toLowerCase());
@@ -730,251 +1139,250 @@
 
             noRes.classList.toggle('hidden', filtered.length > 0);
 
-            filtered.forEach((t, index) => {
+            filtered.forEach(t => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 transition-colors group';
+                
+                const requestersList = processResponsibles(t.requester);
+                const requestersHTML = requestersList.map(r => `<span class="text-[9px] sm:text-xs bg-slate-100 px-1.5 sm:px-2 py-0.5 rounded border border-slate-200 inline-block max-w-full text-wrap break-words mb-1 text-slate-600 font-medium">${r}</span>`).join('');
+                
                 const responsiblesList = processResponsibles(t.responsible);
-                const responsiblesHTML = responsiblesList.map(r => 
-                    `<span class="text-xs bg-slate-100 px-2 py-0.5 rounded border border-slate-200 block w-max mb-1 text-slate-600 font-medium">${r}</span>`
-                ).join('');
-
+                const responsiblesHTML = responsiblesList.map(r => `<span class="text-[9px] sm:text-xs bg-slate-100 px-1.5 sm:px-2 py-0.5 rounded border border-slate-200 inline-block max-w-full text-wrap break-words mb-1 text-slate-600 font-medium">${r}</span>`).join('');
+                
                 tr.innerHTML = `
-                    <td class="px-6 py-4 text-xs font-bold text-slate-400 align-top text-center">${index + 1}</td>
-                    <td class="px-6 py-4 text-sm font-bold text-slate-600 align-top whitespace-nowrap">${formatDate(t.date)}</td>
-                    <td class="px-6 py-4 align-top"><div class="text-base font-bold text-slate-800 leading-snug">${t.task || "Sin Tarea"}</div></td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-700 align-top">${t.requester || "N/A"}</td>
-                    <td class="px-6 py-4 align-top"><div class="flex flex-col gap-0.5">${responsiblesHTML}</div></td>
-                    <td class="px-6 py-4 align-top">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold border ${getStatusClass(t.status)} uppercase tracking-wider">${t.status || "Sin Estado"}</span>
-                    </td>
-                    <td class="px-6 py-4 text-right align-top">
-                        <button onclick="openModal(${t.id})" class="px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-all text-xs font-bold flex items-center gap-2 mx-auto whitespace-nowrap" title="Ver Detalles">
-                            <i data-lucide="eye" class="w-4 h-4"></i> Ver Detalle
-                        </button>
-                    </td>
+                    <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold text-slate-600 align-top">${formatDate(t.date)}</td>
+                    <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 align-top"><div class="text-xs sm:text-base font-bold text-slate-800 leading-snug break-words">${t.task || "Sin Tarea"}</div></td>
+                    <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 align-top"><div class="flex flex-col gap-0.5">${requestersHTML}</div></td>
+                    <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 align-top"><div class="flex flex-col gap-0.5">${responsiblesHTML}</div></td>
+                    <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 align-top"><span class="inline-flex items-center px-1.5 sm:px-2 py-1 rounded-full text-[8px] sm:text-[10px] font-bold border ${getStatusClass(t.status)} uppercase tracking-wider text-center">${t.status || "Sin Estado"}</span></td>
+                    <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-right align-top"><button onclick="openModal(${t.id})" class="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Ver Detalles"><i data-lucide="info" class="w-4 h-4 sm:w-5 sm:h-5"></i></button></td>
                 `;
                 tbody.appendChild(tr);
             });
             lucide.createIcons();
-            updateStats(filtered);
-            updateChart(filtered); // Actualizar Gráfica
+
+            document.getElementById('count-cumplida').textContent = filtered.filter(t => t.status?.toLowerCase() === 'cumplida').length;
+            document.getElementById('count-pendiente').textContent = filtered.filter(t => t.status?.toLowerCase() === 'pendiente').length;
+            document.getElementById('count-proceso').textContent = filtered.filter(t => t.status?.toLowerCase() === 'en proceso').length;
+            updateChart(filtered);
         }
 
-        function updateStats(current) {
-            document.getElementById('count-cumplida').textContent = current.filter(t => t.status && t.status.toLowerCase() === 'cumplida').length;
-            document.getElementById('count-pendiente').textContent = current.filter(t => t.status && t.status.toLowerCase() === 'pendiente').length;
-            document.getElementById('count-proceso').textContent = current.filter(t => t.status && t.status.toLowerCase() === 'en proceso').length;
-        }
-
-        function deleteTask(id) {
-            tasks = tasks.filter(t => t.id !== id);
-            saveToAPI();
-            renderTasks();
-            populateFilters();
-            closeModal();
-        }
-
-        // --- GESTIÓN DE ACTIVIDADES (CREAR Y EDITAR) ---
+        function toggleStatusUpdate() { document.getElementById('updateStatusSection').classList.toggle('hidden'); }
 
         function openFormModal(taskId = null) {
             populateFormDropdowns();
             const form = document.getElementById('activityForm');
-            
             if (taskId) {
-                // Modo Edición
                 const t = tasks.find(x => x.id === taskId);
                 if (!t) return;
-                
                 document.getElementById('formTitle').textContent = "Editar Actividad";
                 document.getElementById('formTaskId').value = t.id;
-                document.getElementById('formDate').value = toInputDate(t.date); 
+                document.getElementById('formDate').value = toInputDate(t.date);
                 document.getElementById('formStatus').value = t.status ? t.status.toLowerCase() : 'pendiente';
                 document.getElementById('formTask').value = t.task;
-                
-                // Selects
-                const reqSelect = document.getElementById('formRequesterSelect');
-                if(!Array.from(reqSelect.options).some(o => o.value === t.requester)) reqSelect.add(new Option(t.requester, t.requester));
-                reqSelect.value = t.requester;
-                
-                const respSelect = document.getElementById('formResponsibleSelect');
-                if(!Array.from(respSelect.options).some(o => o.value === t.responsible)) respSelect.add(new Option(t.responsible, t.responsible));
-                respSelect.value = t.responsible;
 
-                document.getElementById('formMonitoring').value = toInputDate(t.monitoring); 
+                formSelectedRequesters = processResponsibles(t.requester);
+                renderRequesterTags();
+                document.getElementById('formRequesterInput').value = '';
+
+                formSelectedResponsibles = processResponsibles(t.responsible);
+                renderResponsibleTags();
+                document.getElementById('formResponsibleInput').value = '';
+
+                document.getElementById('formMonitoring').value = toInputDate(t.monitoring);
                 document.getElementById('formDetail').value = t.detail;
                 document.getElementById('formFbLink').value = t.fb_link || "";
-                document.getElementById('formDriveLink').value = t.image_url || ""; // Cargar link existente
-
+                document.getElementById('formDriveLink').value = t.image_url || "";
             } else {
-                // Modo Creación
                 form.reset();
                 document.getElementById('formTitle').textContent = "Agregar Nueva Actividad";
                 document.getElementById('formTaskId').value = "";
                 document.getElementById('formDate').valueAsDate = new Date();
+                
+                formSelectedRequesters = [];
+                renderRequesterTags();
+                document.getElementById('formRequesterInput').value = '';
+                
+                formSelectedResponsibles = [];
+                renderResponsibleTags();
+                document.getElementById('formResponsibleInput').value = '';
             }
-            
             document.getElementById('formActivityModal').classList.remove('hidden');
         }
 
-        function closeFormModal() {
-            document.getElementById('formActivityModal').classList.add('hidden');
-        }
+        function closeFormModal() { document.getElementById('formActivityModal').classList.add('hidden'); }
 
         async function saveActivity(e) {
             e.preventDefault();
+            
+            if (formSelectedRequesters.length === 0) {
+                showToast("Por favor, añade al menos un solicitante.", "error");
+                document.getElementById('formRequesterInput').focus();
+                return;
+            }
+            
+            if (formSelectedResponsibles.length === 0) {
+                showToast("Por favor, añade al menos un responsable.", "error");
+                document.getElementById('formResponsibleInput').focus();
+                return;
+            }
+            
             const fd = new FormData(e.target);
             const idVal = fd.get('id');
-            
-            // Construir objeto de tarea
             const taskData = {
-                date: fd.get('date'),
-                task: fd.get('task'),
-                requester: fd.get('requester'),
-                responsible: fd.get('responsible'),
-                monitoring: fd.get('monitoring'),
-                status: fd.get('status'),
-                detail: fd.get('detail'),
-                fb_link: fd.get('fb_link'),
-                image_url: fd.get('image_url') // Guardamos el link directamente
+                date: fd.get('date'), task: fd.get('task'), requester: fd.get('requester'), responsible: fd.get('responsible'),
+                monitoring: fd.get('monitoring'), status: fd.get('status'), detail: fd.get('detail'), fb_link: fd.get('fb_link'), image_url: fd.get('image_url')
             };
 
+            let oldTasksStr = JSON.stringify(tasks);
+
             if (idVal) {
-                // Actualizar existente
                 const idx = tasks.findIndex(t => t.id == idVal);
-                if (idx !== -1) {
-                    tasks[idx] = { ...tasks[idx], ...taskData };
-                }
+                if (idx !== -1) tasks[idx] = { ...tasks[idx], ...taskData };
             } else {
-                // Crear nueva
-                const newTask = { id: Date.now(), ...taskData };
-                tasks.unshift(newTask);
+                tasks.unshift({ id: Date.now(), ...taskData });
             }
 
-            await saveToAPI();
-            renderTasks();
-            populateFilters();
-            
-            closeFormModal();
-            closeModal(); 
+            if(API_URL) {
+                closeFormModal();
+                showSyncOverlay(true, "Guardando actividad en Google Sheets...");
+                const saved = await saveDataToAPI('junta', tasks);
+                if(saved) {
+                    await fetchDataFromAPI('junta');
+                    showToast('Actividad guardada exitosamente.', 'success');
+                } else {
+                    tasks = JSON.parse(oldTasksStr);
+                    showToast('Error al guardar en la nube.', 'error');
+                }
+                showSyncOverlay(false);
+                closeModal();
+            } else {
+                renderTasks();
+                populateFilters();
+                closeFormModal();
+                closeModal();
+                showToast('Actividad guardada localmente.', 'success');
+            }
         }
 
-        function saveStatusUpdate(e) {
+        async function saveStatusUpdate(e) {
             e.preventDefault();
             const taskId = parseInt(document.getElementById('updateTaskId').value);
             const newStatus = document.getElementById('updateStatusSelect').value;
             const newDate = document.getElementById('updateDateInput').value;
             const desc = document.getElementById('updateDescInput').value;
             const idx = tasks.findIndex(t => t.id === taskId);
-            
+
             if (idx !== -1) {
+                let oldTasksStr = JSON.stringify(tasks);
                 tasks[idx].status = newStatus;
                 tasks[idx].monitoring = newDate;
                 const currentDetail = tasks[idx].detail || "";
                 tasks[idx].detail = `[${formatDate(newDate)} - ${newStatus.toUpperCase()}] ${desc}\n${currentDetail}`;
-                saveToAPI(); // Async pero no bloqueante crítico aquí
-                renderTasks();
-                closeModal();
+
+                if(API_URL) {
+                    showSyncOverlay(true, "Actualizando estado...");
+                    const saved = await saveDataToAPI('junta', tasks);
+                    if(saved) {
+                        await fetchDataFromAPI('junta');
+                        showToast('Estado actualizado', 'success');
+                    } else {
+                        tasks = JSON.parse(oldTasksStr);
+                        showToast('Error al actualizar.', 'error');
+                    }
+                    showSyncOverlay(false);
+                    closeModal();
+                } else {
+                    renderTasks();
+                    closeModal();
+                    showToast('Estado actualizado localmente', 'success');
+                }
             }
         }
 
-        // --- DETALLES Y VISTA PREVIA ---
-        
-        // Función que faltaba
-        function toggleStatusUpdate() {
-            const section = document.getElementById('updateStatusSection');
-            section.classList.toggle('hidden');
+        // --- NUEVA FUNCIÓN: Enviar Recordatorio ---
+        async function sendReminderEmail(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            if(!API_URL) {
+                showToast("Funcionalidad disponible solo conectado a la nube.", "error");
+                return;
+            }
+
+            if(!confirm(`¿Desea enviar una notificación/recordatorio por correo a los responsables?\n\n(${task.responsible})`)) return;
+
+            showSyncOverlay(true, "Enviando correos de recordatorio...");
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ type: 'email_reminder', payload: task })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showToast('Recordatorio enviado exitosamente a los responsables.', 'success');
+                } else {
+                    console.error("Error del servidor:", result.message);
+                    showToast('Error al enviar. Verifique que los nombres tengan correo asociado.', 'error');
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast('Fallo al comunicarse con Google Sheets.', 'error');
+            }
+            showSyncOverlay(false);
         }
 
         function openModal(id) {
             const t = tasks.find(x => x.id === id);
-            if (!t) return; 
-
-            // Llenar datos básicos
+            if (!t) return;
             document.getElementById('modalDesc').textContent = t.task || "Sin descripción";
             document.getElementById('modalDate').textContent = formatDate(t.date);
             document.getElementById('modalMonitoreo').textContent = formatDate(t.monitoring) || t.monitoring || "N/A";
-            document.getElementById('modalSolicitante').textContent = t.requester || "N/A";
             document.getElementById('modalDetalleAccion').innerText = t.detail || "Sin detalles adicionales.";
+
+            const reqList = processResponsibles(t.requester);
+            document.getElementById('modalSolicitante').innerHTML = reqList.map(r => `<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-medium inline-block w-max">${r}</span>`).join('');
             
             const respList = processResponsibles(t.responsible);
-            const respHTML = respList.map(r => 
-                `<span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 font-medium inline-block w-max">${r}</span>`
-            ).join('');
-            document.getElementById('modalResponsable').innerHTML = respHTML;
+            document.getElementById('modalResponsable').innerHTML = respList.map(r => `<span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 font-medium inline-block w-max">${r}</span>`).join('');
             document.getElementById('modalStatusDisplay').innerHTML = `<span class="px-3 py-1 rounded-full font-bold text-xs border ${getStatusClass(t.status)} uppercase tracking-wider">${t.status || "Pendiente"}</span>`;
 
-            // Configurar VISTA PREVIA FACEBOOK
+            // Enlaces
             const fbContainer = document.getElementById('facebookLinkContainer');
             if (t.fb_link && t.fb_link.trim() !== "") {
-                fbContainer.innerHTML = `
-                    <div class="w-full flex justify-between items-center gap-4">
-                         <div class="flex items-center gap-2 text-blue-800">
-                             <i data-lucide="facebook" class="w-5 h-5"></i>
-                             <span class="text-sm font-bold truncate max-w-[200px]">${t.fb_link}</span>
-                         </div>
-                         <a href="${t.fb_link}" target="_blank" class="text-xs bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-bold transition-colors shadow-sm flex items-center gap-2">
-                            <span>Ver Publicación</span>
-                            <i data-lucide="external-link" class="w-3 h-3"></i>
-                         </a>
-                    </div>
-                `;
+                fbContainer.innerHTML = `<div class="w-full flex justify-between items-center gap-4"><div class="flex items-center gap-2 text-blue-800"><i data-lucide="facebook" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">${t.fb_link}</span></div><a href="${t.fb_link}" target="_blank" class="text-xs bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-bold transition-colors shadow-sm flex items-center gap-2"><span>Ver Publicación</span><i data-lucide="external-link" class="w-3 h-3"></i></a></div>`;
             } else {
-                 fbContainer.innerHTML = `
-                    <div class="text-center p-6">
-                        <i data-lucide="facebook" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i>
-                        <p class="text-sm text-slate-400">Sin enlace de Facebook.</p>
-                         <button onclick="closeModal(); openFormModal(${t.id})" class="mt-2 text-xs text-blue-600 font-bold underline">Agregar Enlace</button>
-                    </div>
-                 `;
+                 fbContainer.innerHTML = `<div class="text-center p-6"><i data-lucide="facebook" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i><p class="text-sm text-slate-400">Sin enlace de Facebook.</p><button onclick="closeModal(); openFormModal(${t.id})" class="mt-2 text-xs text-blue-600 font-bold underline">Agregar Enlace</button></div>`;
             }
 
-            // Configurar VISTA PREVIA DRIVE (SOLO LINK)
             const driveContainer = document.getElementById('imageLinkContainer');
             if (t.image_url && t.image_url.trim() !== "") {
-                 driveContainer.innerHTML = `
-                    <div class="w-full flex justify-between items-center gap-4">
-                         <div class="flex items-center gap-2 text-green-700">
-                             <i data-lucide="folder" class="w-5 h-5"></i>
-                             <span class="text-sm font-bold truncate max-w-[200px]">Enlace Drive</span>
-                         </div>
-                         <a href="${t.image_url}" target="_blank" class="text-xs bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-bold transition-colors shadow-sm flex items-center gap-2">
-                            <span>Abrir Carpeta/Archivo</span>
-                            <i data-lucide="external-link" class="w-3 h-3"></i>
-                         </a>
-                    </div>
-                 `;
+                 driveContainer.innerHTML = `<div class="w-full flex justify-between items-center gap-4"><div class="flex items-center gap-2 text-green-700"><i data-lucide="folder" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Enlace Drive</span></div><a href="${t.image_url}" target="_blank" class="text-xs bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-bold transition-colors shadow-sm flex items-center gap-2"><span>Abrir Carpeta/Archivo</span><i data-lucide="external-link" class="w-3 h-3"></i></a></div>`;
             } else {
-                driveContainer.innerHTML = `
-                    <div class="text-center p-6">
-                        <i data-lucide="folder-x" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i>
-                        <p class="text-sm text-slate-400">Sin enlace de evidencia.</p>
-                         <button onclick="closeModal(); openFormModal(${t.id})" class="mt-2 text-xs text-green-600 font-bold underline">Agregar Enlace</button>
-                    </div>
-                `;
+                driveContainer.innerHTML = `<div class="text-center p-6"><i data-lucide="folder-x" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i><p class="text-sm text-slate-400">Sin enlace de evidencia.</p><button onclick="closeModal(); openFormModal(${t.id})" class="mt-2 text-xs text-green-600 font-bold underline">Agregar Enlace</button></div>`;
             }
 
-            // Configurar formularios internos
             document.getElementById('updateTaskId').value = t.id;
             document.getElementById('updateStatusSelect').value = t.status ? t.status.toLowerCase() : 'pendiente';
             document.getElementById('updateStatusSection').classList.add('hidden');
+
+            document.getElementById('btnEditTask').onclick = function() { closeModal(); openFormModal(t.id); };
             
-            // Botones Acciones
-            const btnEdit = document.getElementById('btnEditTask');
-            btnEdit.onclick = function() { closeModal(); openFormModal(t.id); };
+            // Conectar el nuevo botón de Recordatorio
+            document.getElementById('btnSendReminder').onclick = function() { sendReminderEmail(t.id); };
 
             const btnDelete = document.getElementById('btnDeleteTask');
             const spanText = btnDelete.querySelector('span');
             spanText.textContent = "Eliminar";
-            btnDelete.classList.remove('bg-red-100', 'text-red-700'); // Reset classes
-            btnDelete.classList.add('bg-red-100', 'text-red-700'); 
-            btnDelete.onclick = function() {
+            btnDelete.classList.remove('bg-red-600', 'text-white'); btnDelete.classList.add('bg-red-100', 'text-red-700');
+            btnDelete.onclick = async function() {
                 if (spanText.textContent === "¿Confirmar?") {
-                    deleteTask(t.id);
-                } else {
-                    spanText.textContent = "¿Confirmar?";
-                    btnDelete.classList.remove('bg-red-100', 'text-red-700');
-                    btnDelete.classList.add('bg-red-600', 'text-white');
+                    await deleteTask(t.id);
                 }
+                else { spanText.textContent = "¿Confirmar?"; btnDelete.classList.remove('bg-red-100', 'text-red-700'); btnDelete.classList.add('bg-red-600', 'text-white'); }
             };
 
             document.getElementById('taskModal').classList.remove('hidden');
@@ -984,48 +1392,427 @@
 
         function closeModal() { document.getElementById('taskModal').classList.add('hidden'); document.body.style.overflow = 'auto'; }
 
-        // Export
-        function exportToPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
-            doc.setFontSize(18);
-            doc.text("Reporte de Actividades", 14, 20);
-            const tableData = tasks.map(t => [formatDate(t.date), t.task, t.requester, t.responsible, t.status]);
-            doc.autoTable({
-                startY: 32,
-                head: [['Fecha', 'Tarea', 'Solicitante', 'Responsable', 'Estado']],
-                body: tableData,
-                // --- AJUSTE DE COLORES EN PDF ---
-                didParseCell: function(data) {
-                    if (data.section === 'body' && data.column.index === 4) { // La columna 4 es "Estado"
-                        const text = data.cell.text[0].toLowerCase();
-                        if (text.includes('cumplida')) {
-                            data.cell.styles.textColor = [22, 163, 74]; // Verde
-                            data.cell.styles.fontStyle = 'bold';
-                        } else if (text.includes('pendiente')) {
-                            data.cell.styles.textColor = [220, 38, 38]; // Rojo
-                            data.cell.styles.fontStyle = 'bold';
-                        } else if (text.includes('proceso')) {
-                            data.cell.styles.textColor = [217, 119, 6]; // Ámbar/Naranja
-                            data.cell.styles.fontStyle = 'bold';
-                        }
-                    }
+        async function deleteTask(id) {
+            let oldTasksStr = JSON.stringify(tasks);
+            tasks = tasks.filter(t => t.id !== id);
+
+            if(API_URL) {
+                closeModal();
+                showSyncOverlay(true, "Eliminando actividad...");
+                const saved = await saveDataToAPI('junta', tasks);
+                if(saved) {
+                    await fetchDataFromAPI('junta');
+                    showToast('Actividad eliminada', 'info');
+                } else {
+                    tasks = JSON.parse(oldTasksStr);
+                    showToast('Error al eliminar.', 'error');
                 }
-            });
-            doc.save(`reporte_${new Date().toISOString().slice(0,10)}.pdf`);
+                showSyncOverlay(false);
+            } else {
+                renderTasks();
+                populateFilters();
+                closeModal();
+                showToast('Actividad eliminada localmente', 'info');
+            }
         }
 
-        // Init
-        document.getElementById('taskSearchInput').addEventListener('input', renderTasks);
-        document.getElementById('responsibleFilter').addEventListener('change', renderTasks);
-        document.getElementById('statusFilter').addEventListener('change', renderTasks);
 
-        window.onload = () => {
-            if(API_URL) { fetchTasksFromAPI(); } 
-            else { renderTasks(); populateFilters(); updateConnectionStatus(true, "Modo Local", "bg-slate-400"); }
+        // ==========================================
+        // MÓDULO: CALENDARIO DE EVENTOS
+        // ==========================================
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const label = document.getElementById('monthYearLabel');
+            const filterDept = document.getElementById('calendarDeptFilter').value;
+            grid.innerHTML = '';
+            
+            const firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay(); // 0-Dom
+            const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            
+            label.textContent = `${monthNames[calCurrentMonth]} ${calCurrentYear}`;
+            
+            // Celdas vacías previas
+            for (let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div class="bg-slate-50 min-h-[100px] border-b border-r border-slate-200 p-2 opacity-40 hidden sm:block"></div>`;
+                grid.innerHTML += `<div class="bg-slate-50 min-h-[60px] border-b border-r border-slate-200 p-1 opacity-40 sm:hidden"></div>`;
+            }
+            
+            // Días del mes
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${calCurrentYear}-${String(calCurrentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                
+                // Determinar Fin de semana o Festivo (Sombreado)
+                const currentDayOfWeek = new Date(calCurrentYear, calCurrentMonth, d).getDay();
+                const isWeekend = currentDayOfWeek === 0 || currentDayOfWeek === 6; // Dom o Sab
+                const isFestivo = HOLIDAYS_CO.includes(dateStr);
+                const cellBgClass = (isWeekend || isFestivo) ? 'bg-slate-100/90' : 'bg-white';
+
+                // Filtrar eventos por fecha y departamento seleccionado
+                let dayEvents = events.filter(e => e.date === dateStr);
+                if (filterDept !== 'all') {
+                    dayEvents = dayEvents.filter(e => e.department === filterDept);
+                }
+                
+                // Ordenar por hora de inicio
+                dayEvents.sort((a, b) => (a.startTime || "00:00").localeCompare(b.startTime || "00:00"));
+
+                let eventsHtml = dayEvents.map(e => {
+                    const colorClasses = DEPT_COLORS[e.department] || "bg-slate-100 text-slate-800 border-slate-200";
+                    const timeLabel = (e.startTime && e.endTime) ? `${e.startTime} a ${e.endTime}` : (e.time || "");
+                    
+                    return `
+                    <div onclick="openEventDetailsModal(${e.id})" class="text-[9px] sm:text-[10px] leading-tight rounded px-1.5 py-1 mb-1 cursor-pointer transition-transform hover:scale-[1.02] truncate font-medium border shadow-sm ${colorClasses}" title="${timeLabel} - ${e.name}\nÁrea: ${e.department}">
+                        <span class="opacity-90">${e.name}</span>
+                    </div>`;
+                }).join('');
+
+                const isToday = new Date().toDateString() === new Date(calCurrentYear, calCurrentMonth, d).toDateString();
+                const numberClass = isToday 
+                    ? "bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold shadow-md" 
+                    : (isWeekend || isFestivo) ? "text-slate-400 font-bold w-6 h-6 flex items-center justify-center" : "text-slate-600 font-bold w-6 h-6 flex items-center justify-center";
+
+                grid.innerHTML += `
+                    <div class="${cellBgClass} relative min-h-[80px] sm:min-h-[120px] border-b border-r border-slate-200 p-1 sm:p-2 flex flex-col gap-1 transition-colors hover:bg-blue-50/30 group pb-6">
+                        <div class="flex justify-between items-center mb-0.5 sm:mb-1">
+                            ${isFestivo ? '<i data-lucide="flag" class="w-3 h-3 text-slate-300 ml-1"></i>' : '<span></span>'}
+                            <span class="text-xs sm:text-sm ${numberClass} ml-auto">${d}</span>
+                        </div>
+                        <div class="flex-grow flex flex-col gap-0.5 overflow-y-auto custom-scrollbar pr-0.5 max-h-[85px]">
+                            ${eventsHtml}
+                        </div>
+                        <button onclick="openFormEventModal(null, '${dateStr}')" class="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-1.5 right-1.5 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center w-6 h-6 shadow-md z-10" title="Crear evento el ${formatDate(dateStr)}">
+                            <i data-lucide="plus" class="w-4 h-4 text-white"></i>
+                        </button>
+                    </div>
+                `;
+            }
+            
+            // Completar cuadrícula final
+            const totalCells = firstDay + daysInMonth;
+            const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let i = 0; i < remaining; i++) {
+                grid.innerHTML += `<div class="bg-slate-50 min-h-[100px] border-b border-r border-slate-200 p-2 opacity-40 hidden sm:block"></div>`;
+                grid.innerHTML += `<div class="bg-slate-50 min-h-[60px] border-b border-r border-slate-200 p-1 opacity-40 sm:hidden"></div>`;
+            }
             lucide.createIcons();
+        }
+
+        function changeMonth(step) {
+            if (step === 0) { calCurrentMonth = new Date().getMonth(); calCurrentYear = new Date().getFullYear(); } 
+            else { calCurrentMonth += step; if (calCurrentMonth > 11) { calCurrentMonth = 0; calCurrentYear++; } else if (calCurrentMonth < 0) { calCurrentMonth = 11; calCurrentYear--; } }
+            renderCalendar();
+        }
+
+        function populateEventDepartments() {
+            const select = document.getElementById('formEventDept');
+            const filter = document.getElementById('calendarDeptFilter');
+            const filterMob = document.getElementById('calendarDeptFilterMobile');
+            
+            let htmlOptions = '<option value="" disabled selected>Seleccione el Área/Departamento...</option>';
+            let filterOptions = '<option value="all">Todas las Áreas</option>';
+            
+            Object.keys(DEPARTAMENTOS).forEach(dept => {
+                htmlOptions += `<option value="${dept}">${dept}</option>`;
+                filterOptions += `<option value="${dept}">${dept}</option>`;
+            });
+            select.innerHTML = htmlOptions;
+            if(filter.options.length <= 1) filter.innerHTML = filterOptions;
+            if(filterMob && filterMob.options.length <= 1) filterMob.innerHTML = filterOptions;
+
+            // Rellenar horas (00:00 a 23:00)
+            const selStart = document.getElementById('formEventStartTime');
+            const selEnd = document.getElementById('formEventEndTime');
+            let hoursHtml = '';
+            for(let i=0; i<=23; i++) {
+                const hr = i.toString().padStart(2, '0') + ':00';
+                hoursHtml += `<option value="${hr}">${hr}</option>`;
+            }
+            selStart.innerHTML = hoursHtml;
+            selEnd.innerHTML = hoursHtml;
+        }
+
+        function updateEventDirector() {
+            const dept = document.getElementById('formEventDept').value;
+            document.getElementById('formEventDir').value = DEPARTAMENTOS[dept] || "";
+        }
+
+        function openFormEventModal(eventId = null, defaultDate = null) {
+            const form = document.getElementById('eventForm');
+            if (eventId) {
+                const ev = events.find(x => x.id === eventId);
+                if (!ev) return;
+                document.getElementById('eventFormTitle').textContent = "Editar Evento";
+                document.getElementById('formEventId').value = ev.id;
+                document.getElementById('formEventDept').value = ev.department;
+                updateEventDirector();
+                document.getElementById('formEventDate').value = toInputDate(ev.date);
+                document.getElementById('formEventStartTime').value = ev.startTime || "08:00";
+                document.getElementById('formEventEndTime').value = ev.endTime || "10:00";
+                document.getElementById('formEventLocation').value = ev.location;
+                document.getElementById('formEventName').value = ev.name;
+                document.getElementById('formEventDesc').value = ev.description;
+            } else {
+                form.reset();
+                document.getElementById('eventFormTitle').textContent = "Registrar Nuevo Evento";
+                document.getElementById('formEventId').value = "";
+                document.getElementById('formEventDir').value = "";
+                document.getElementById('formEventStartTime').value = "08:00";
+                document.getElementById('formEventEndTime').value = "10:00";
+                if (defaultDate) {
+                    document.getElementById('formEventDate').value = defaultDate;
+                }
+            }
+            document.getElementById('formEventModal').classList.remove('hidden');
+        }
+
+        function closeEventFormModal() { document.getElementById('formEventModal').classList.add('hidden'); }
+
+        async function saveEvent(e) {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const idVal = fd.get('id');
+            const dateVal = fd.get('date');
+            const startVal = fd.get('startTime');
+            const endVal = fd.get('endTime');
+            const deptVal = fd.get('department');
+
+            // Validar que Inicio sea Menor que Fin
+            if (parseInt(startVal) >= parseInt(endVal)) {
+                showToast("Error: La Hora de Fin debe ser mayor a la Hora de Inicio.", "error");
+                return;
+            }
+            
+            // VALIDACIÓN DE CONFLICTOS RANGOS DE HORAS
+            const conflict = events.find(ev => 
+                ev.date === dateVal && 
+                ev.department === deptVal &&
+                ev.id != idVal && 
+                !(endVal <= (ev.startTime||"00:00") || startVal >= (ev.endTime||"23:00"))
+            );
+
+            if(conflict) {
+                showToast(`Conflicto de Horario: El área ya tiene "${conflict.name}" de ${conflict.startTime} a ${conflict.endTime}.`, 'error');
+                return; 
+            }
+
+            const eventData = {
+                date: dateVal,
+                startTime: startVal,
+                endTime: endVal,
+                time: `${startVal} - ${endVal}`,
+                department: deptVal,
+                director: fd.get('director'),
+                location: fd.get('location'),
+                name: fd.get('name'),
+                description: fd.get('description')
+            };
+
+            let oldEventsStr = JSON.stringify(events);
+
+            if (idVal) {
+                const idx = events.findIndex(ev => ev.id == idVal);
+                if(idx !== -1) events[idx] = { ...events[idx], ...eventData };
+            } else {
+                events.push({ id: Date.now(), ...eventData });
+            }
+
+            if(API_URL) {
+                closeEventFormModal();
+                showSyncOverlay(true, "Registrando evento en Google Sheets...");
+                const saved = await saveDataToAPI('calendario', events);
+                
+                if(saved) {
+                    await fetchDataFromAPI('calendario');
+                    showToast('Evento guardado y sincronizado exitosamente.', 'success');
+                } else {
+                    events = JSON.parse(oldEventsStr);
+                    showToast('Ocurrió un error al guardar en la nube.', 'error');
+                }
+                showSyncOverlay(false);
+            } else {
+                renderCalendar();
+                closeEventFormModal();
+                showToast('Evento guardado localmente.', 'success');
+            }
+        }
+
+        function openEventDetailsModal(id) {
+            const ev = events.find(x => x.id === id);
+            if (!ev) return;
+
+            document.getElementById('viewEventName').textContent = ev.name;
+            document.getElementById('viewEventDate').textContent = formatDate(ev.date);
+            
+            let timeText = "";
+            if (ev.startTime && ev.endTime) {
+                timeText = `${ev.startTime} a ${ev.endTime}`;
+            } else if (ev.time && ev.time.trim() !== "" && ev.time.trim() !== "-" && ev.time.trim() !== "a") {
+                timeText = ev.time.replace('-', 'a');
+            } else {
+                timeText = "Horario por definir";
+            }
+            document.getElementById('viewEventTime').textContent = timeText;
+            
+            document.getElementById('viewEventLocation').textContent = ev.location;
+            document.getElementById('viewEventDept').textContent = ev.department;
+            document.getElementById('viewEventDir').textContent = ev.director;
+            document.getElementById('viewEventDesc').textContent = ev.description || "Sin descripción adicional.";
+
+            const headerBg = document.getElementById('viewEventHeaderBg');
+            const bgClass = DEPT_COLORS[ev.department] ? DEPT_COLORS[ev.department].split(' ')[0] : 'bg-slate-100';
+            headerBg.className = `p-6 relative border-b border-slate-100 rounded-t-2xl ${bgClass}`;
+
+            const btnEdit = document.getElementById('btnEditEvent');
+            btnEdit.onclick = () => { closeEventDetailsModal(); openFormEventModal(ev.id); };
+
+            const btnDelete = document.getElementById('btnDeleteEvent');
+            const spanText = btnDelete.querySelector('span');
+            spanText.textContent = "Eliminar";
+            btnDelete.classList.remove('bg-red-600', 'text-white');
+            btnDelete.classList.add('bg-red-50', 'text-red-600');
+            
+            btnDelete.onclick = async function() {
+                if (spanText.textContent === "¿Seguro?") {
+                    closeEventDetailsModal();
+                    events = events.filter(e => e.id !== ev.id);
+                    if(API_URL) {
+                        showSyncOverlay(true, "Eliminando de la nube...");
+                        await saveDataToAPI('calendario', events);
+                        await fetchDataFromAPI('calendario');
+                        showSyncOverlay(false);
+                    } else {
+                        renderCalendar();
+                    }
+                    showToast("Evento eliminado correctamente.", "info");
+                } else {
+                    spanText.textContent = "¿Seguro?";
+                    btnDelete.classList.remove('bg-red-50', 'text-red-600');
+                    btnDelete.classList.add('bg-red-600', 'text-white');
+                }
+            };
+
+            document.getElementById('eventDetailsModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+        }
+
+        function closeEventDetailsModal() { 
+            document.getElementById('eventDetailsModal').classList.add('hidden'); 
+            document.body.style.overflow = 'auto'; 
+        }
+
+        // ==========================================
+        // EXPORTACIÓN PDF GLOBAL Y POR RANGO
+        // ==========================================
+        
+        function handlePDFClick() {
+            if (currentView === 'junta') {
+                exportToPDF('junta');
+            } else if (currentView === 'calendario') {
+                document.getElementById('pdfStartDate').value = "";
+                document.getElementById('pdfEndDate').value = "";
+                document.getElementById('pdfRangeModal').classList.remove('hidden');
+            }
+        }
+
+        function closePdfRangeModal() {
+            document.getElementById('pdfRangeModal').classList.add('hidden');
+        }
+
+        function generateCalendarPDF() {
+            const startDateStr = document.getElementById('pdfStartDate').value;
+            const endDateStr = document.getElementById('pdfEndDate').value;
+            
+            if (!startDateStr || !endDateStr) {
+                showToast("Por favor seleccione fecha de inicio y de fin.", "error");
+                return;
+            }
+            if (startDateStr > endDateStr) {
+                showToast("La fecha de inicio no puede ser mayor a la fecha final.", "error");
+                return;
+            }
+            
+            closePdfRangeModal();
+            exportToPDF('calendario', startDateStr, endDateStr);
+        }
+
+        async function exportToPDF(type, start = null, end = null) {
+            showToast("Generando reporte...", "info");
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            
+            doc.setFontSize(16);
+            let startYTable = 30; // Margen inicial por defecto sin logo
+
+            // Usar el logo en Base64 directamente (Sin errores de CORS)
+            if (LOGO_BASE64 && LOGO_BASE64.startsWith("data:image")) {
+                try {
+                    doc.addImage(LOGO_BASE64, 'PNG', 14, 10, 40, 11);
+                    startYTable = 45; // Empujar la tabla hacia abajo para que no estorbe al logo
+                } catch (e) {
+                    console.error("Error al añadir el logo al PDF:", e);
+                }
+            }
+            
+            if (type === 'junta') {
+                // Si existe el logo el título baja un poco, sino sube.
+                const titleY = (LOGO_BASE64 && LOGO_BASE64.startsWith("data:image")) ? 32 : 20; 
+                doc.text("Reporte de Seguimiento - Junta Directiva", 14, titleY);
+                
+                const tableData = tasks.map(t => [formatDate(t.date), t.task, t.requester, t.responsible, t.status]);
+                doc.autoTable({ startY: startYTable, head: [['Fecha', 'Tarea', 'Solicitante', 'Responsable', 'Estado']], body: tableData, styles: { fontSize: 8 }});
+                doc.save(`reporte_junta_${new Date().toISOString().slice(0,10)}.pdf`);
+                showToast("PDF de Junta descargado.", "success");
+            } 
+            else if (type === 'calendario') {
+                const filteredEvents = events.filter(e => e.date >= start && e.date <= end);
+                
+                const titleY = (LOGO_BASE64 && LOGO_BASE64.startsWith("data:image")) ? 30 : 15;
+                const subtitleY = (LOGO_BASE64 && LOGO_BASE64.startsWith("data:image")) ? 36 : 22;
+                
+                doc.text(`Cronograma de Eventos Departamentales`, 14, titleY);
+                doc.setFontSize(11);
+                doc.setTextColor(100);
+                doc.text(`Periodo: ${formatDate(start)} hasta ${formatDate(end)}`, 14, subtitleY);
+                
+                if(filteredEvents.length === 0) {
+                    doc.text("No hay eventos registrados en este periodo.", 14, startYTable);
+                } else {
+                    filteredEvents.sort((a,b) => {
+                        if (a.date !== b.date) return a.date.localeCompare(b.date);
+                        return (a.startTime||"").localeCompare(b.startTime||"");
+                    });
+
+                    const tableData = filteredEvents.map(e => [
+                        formatDate(e.date), 
+                        `${e.startTime} a ${e.endTime}`, 
+                        e.name, 
+                        e.department, 
+                        e.location
+                    ]);
+                    
+                    doc.autoTable({ 
+                        startY: startYTable, 
+                        head: [['Fecha', 'Horario', 'Evento', 'Área / Departamento', 'Lugar']], 
+                        body: tableData, 
+                        styles: { fontSize: 8 },
+                        headStyles: { fillColor: [22, 163, 74] } 
+                    });
+                }
+                
+                doc.save(`eventos_camara_${start}_al_${end}.pdf`);
+                showToast("Reporte de Calendario descargado.", "success");
+            }
+        }
+
+        // Inicializador
+        window.onload = () => {
+            lucide.createIcons();
+            initSync();
+            switchView('landing'); 
         };
     </script>
 </body>
 </html>
-
