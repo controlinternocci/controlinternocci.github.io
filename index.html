@@ -3,121 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Institucional - Cámara de Comercio</title>
+    <title>Portal Gestión Institucional - CC Ipiales</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Bibliotecas para PDF y Gráficas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
         .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
-        .status-pill { transition: all 0.2s; }
+        .full-overlay { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px); }
         select { appearance: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         #updateStatusSection { transition: all 0.3s ease-in-out; }
         
-        /* Loader Spinner */
-        .loader {
-            border: 3px solid #f3f3f3; border-radius: 50%;
-            border-top: 3px solid #3b82f6; width: 20px; height: 20px;
-            -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite;
-        }
         .loader-large {
-            border: 4px solid #f3f3f3; border-radius: 50%;
-            border-top: 4px solid #2563eb; width: 40px; height: 40px;
-            -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite;
+            border: 4px solid #e2e8f0; border-radius: 50%; border-top: 4px solid #2563eb;
+            width: 40px; height: 40px; animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Calendar Grid Styles */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e2e8f0; border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden; }
-        .calendar-day { background-color: white; min-height: 120px; padding: 0.5rem; display: flex; flex-direction: column; position: relative; }
-        .calendar-day.weekend { background-color: #f1f5f9; }
-        .calendar-day.holiday { background-color: #f1f5f9; }
-        .calendar-day-header { text-align: right; font-size: 0.875rem; font-weight: 500; color: #64748b; margin-bottom: 0.25rem; }
-        .calendar-day.today .calendar-day-header { color: #2563eb; font-weight: 700; }
+        .hidden-view { display: none !important; }
         
-        /* Toasts */
-        .toast-container { position: fixed; bottom: 1rem; right: 1rem; z-index: 100; display: flex; flex-direction: column; gap: 0.5rem; }
-        .toast { transform: translateX(100%); opacity: 0; transition: all 0.3s ease; }
-        .toast.show { transform: translateX(0); opacity: 1; }
+        #toastContainer { transition: transform 0.3s ease-in-out, opacity 0.3s; }
+        .toast-show { transform: translateY(0); opacity: 1; }
+        .toast-hide { transform: translateY(100%); opacity: 0; }
     </style>
 </head>
 <body class="text-slate-800">
 
-    <!-- Pantalla de Carga Global Sincronización -->
-    <div id="fullSyncOverlay" class="fixed inset-0 z-[100] hidden flex-col items-center justify-center bg-slate-900/40 backdrop-blur-sm transition-all">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-4">
+    <div id="fullSyncOverlay" class="fixed inset-0 z-[100] hidden-view flex-col items-center justify-center full-overlay">
+        <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-4 text-center max-w-sm">
             <div class="loader-large"></div>
-            <p class="text-slate-700 font-bold text-sm tracking-wide" id="syncStatusText">Sincronizando con la nube...</p>
+            <div>
+                <h3 class="text-lg font-bold text-slate-800">Sincronizando...</h3>
+                <p class="text-sm text-slate-500">Guardando datos en la nube de Google Sheets</p>
+            </div>
         </div>
     </div>
 
-    <!-- Contenedor Toasts -->
-    <div id="toastContainer" class="toast-container"></div>
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-[90] toast-hide pointer-events-none">
+        <div id="toastBody" class="bg-slate-800 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3">
+            <i id="toastIcon" data-lucide="info" class="w-5 h-5 text-blue-400"></i>
+            <span id="toastMessage" class="text-sm font-medium">Notificación</span>
+        </div>
+    </div>
 
-    <div id="app" class="min-h-screen pb-20">
-        <!-- Header Universal -->
-        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm hidden" id="mainHeader">
+    <div id="landingView" class="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-blue-50">
+        <img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo" class="h-20 mb-10 object-contain mix-blend-multiply">
+        
+        <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-2 text-center">Portal de Gestión Institucional</h1>
+        <p class="text-slate-500 mb-12 text-center max-w-xl">Seleccione el módulo al que desea ingresar para gestionar actividades o consultar eventos programados.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+            <button onclick="switchView('junta')" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-400 hover:shadow-lg transition-all group flex flex-col items-center text-center gap-4">
+                <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                    <i data-lucide="users" class="w-10 h-10 text-blue-600 group-hover:text-white transition-colors"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800 mb-2">Seguimiento Junta Directiva</h2>
+                    <p class="text-sm text-slate-500">Gestione, asigne y realice seguimiento a las actividades y compromisos generados en la junta.</p>
+                </div>
+            </button>
+            
+            <button onclick="switchView('calendario')" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:border-green-400 hover:shadow-lg transition-all group flex flex-col items-center text-center gap-4">
+                <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-colors">
+                    <i data-lucide="calendar-days" class="w-10 h-10 text-green-600 group-hover:text-white transition-colors"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800 mb-2">Calendario de Departamentos</h2>
+                    <p class="text-sm text-slate-500">Programe y visualice los eventos, capacitaciones y actividades de todas las áreas.</p>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <div id="juntaView" class="hidden-view min-h-screen pb-20">
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
-                        <button onclick="showLanding()" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors" title="Volver al Inicio">
+                        <button onclick="switchView('landing')" class="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors" title="Volver al inicio">
                             <i data-lucide="arrow-left" class="w-5 h-5"></i>
                         </button>
-                        <img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo Cámara" class="h-10 w-auto object-contain">
-                        <div class="h-6 w-px bg-slate-300 mx-2 hidden sm:block"></div>
-                        <div class="hidden sm:block">
-                            <h1 class="text-lg font-bold text-slate-900 leading-tight" id="headerTitle">Módulo</h1>
-                            <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Cámara de Comercio de Ipiales</p>
+                        <img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo" class="h-10 w-auto object-contain hidden sm:block">
+                        <div class="h-8 w-px bg-slate-300 mx-2 hidden sm:block"></div>
+                        <div>
+                            <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Junta Directiva</h1>
+                            <p class="text-[10px] sm:text-xs text-slate-500 font-medium uppercase tracking-wider">Gestión de Actividades</p>
                         </div>
                     </div>
                     
-                    <!-- Filtros y Acciones (Se llenan dinámicamente según el módulo) -->
-                    <div id="headerActions" class="flex flex-wrap items-center gap-3 justify-end"></div>
+                    <div class="flex flex-wrap items-center gap-3 justify-end">
+                        <div class="relative flex-grow sm:flex-grow-0">
+                            <input type="text" id="taskSearchInput" placeholder="Buscar actividad..." class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-48 transition-all">
+                            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                        </div>
+                        <div class="relative flex-grow sm:flex-grow-0">
+                            <select id="responsibleFilter" class="pl-10 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-40 cursor-pointer">
+                                <option value="all">Responsable</option>
+                            </select>
+                            <i data-lucide="user-check" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                        </div>
+                        <div class="relative flex-grow sm:flex-grow-0">
+                            <select id="statusFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 cursor-pointer w-full sm:w-32">
+                                <option value="all">Estado</option>
+                                <option value="cumplida">Cumplida</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en proceso">En Proceso</option>
+                            </select>
+                        </div>
+                        <div class="flex gap-2 w-full sm:w-auto items-center justify-end">
+                            <button onclick="openPDFRangeModal('junta')" class="h-10 px-4 flex items-center justify-center bg-slate-800 text-white rounded-full hover:bg-slate-900 transition-colors shadow-sm gap-2" title="Descargar PDF">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                <span class="text-sm font-bold hidden sm:inline">Descargar Reporte</span>
+                            </button>
+                            <button onclick="openJuntaFormModal()" class="h-10 px-4 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-sm gap-2" title="Agregar Nueva Actividad">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span class="text-sm font-bold hidden sm:inline">Nueva Actividad</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <!-- VISTA DE LANDING (Inicio) -->
-        <div id="landingView" class="max-w-5xl mx-auto px-4 py-12">
-            <div class="text-center mb-12">
-                <img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo" class="h-20 w-auto mx-auto mb-6">
-                <h1 class="text-3xl font-extrabold text-slate-900 mb-2">Portal de Gestión Institucional</h1>
-                <p class="text-slate-500">Seleccione el módulo al que desea ingresar</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                <!-- Tarjeta Junta Directiva -->
-                <button onclick="openModule('junta')" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all text-left flex flex-col items-center sm:items-start">
-                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                        <i data-lucide="clipboard-list" class="w-8 h-8"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-slate-800 mb-3">Seguimiento Junta Directiva</h2>
-                    <p class="text-slate-500 text-sm leading-relaxed mb-6 text-center sm:text-left">Gestione, supervise y actualice el estado de las actividades y compromisos asignados por la Junta Directiva.</p>
-                    <span class="mt-auto inline-flex items-center gap-2 text-sm font-bold text-blue-600 group-hover:text-blue-700">Ingresar al módulo <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
-                </button>
-
-                <!-- Tarjeta Calendario -->
-                <button onclick="openModule('calendario')" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:emerald-300 transition-all text-left flex flex-col items-center sm:items-start">
-                    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all">
-                        <i data-lucide="calendar-days" class="w-8 h-8"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-slate-800 mb-3">Calendario Institucional</h2>
-                    <p class="text-slate-500 text-sm leading-relaxed mb-6 text-center sm:text-left">Programación de actividades por departamento. Visualice eventos y evite cruces de horarios.</p>
-                    <span class="mt-auto inline-flex items-center gap-2 text-sm font-bold text-emerald-600 group-hover:text-emerald-700">Ingresar al módulo <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
-                </button>
-            </div>
-        </div>
-
-        <!-- VISTA DE JUNTA DIRECTIVA -->
-        <div id="juntaView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-            <!-- Grid Estadísticas y Gráfica -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
                 <div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
@@ -142,628 +154,553 @@
                         <div class="bg-amber-50 p-3 rounded-full text-amber-600"><i data-lucide="activity" class="w-6 h-6"></i></div>
                     </div>
                 </div>
-                <!-- Gráfica -->
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-center relative min-h-[160px]">
                     <div class="h-32 w-full flex justify-center"><canvas id="statusChart"></canvas></div>
-                    <div id="chartEmptyState" class="absolute inset-0 flex items-center justify-center bg-white/50 hidden"><span class="text-xs text-slate-400">Sin datos</span></div>
+                    <div id="chartEmptyState" class="absolute inset-0 flex items-center justify-center bg-white/50 hidden">
+                        <span class="text-xs text-slate-400">Sin datos</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Tabla Actividades (Responsiva sin scroll forzado) -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full text-left border-collapse table-fixed min-w-[800px]">
                         <thead>
                             <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
-                                <th class="px-4 py-4 w-28 whitespace-nowrap">Fecha</th>
-                                <th class="px-4 py-4 w-2/5">Actividad / Tarea</th>
-                                <th class="px-4 py-4 w-48">Solicitante</th>
-                                <th class="px-4 py-4 w-48">Responsable</th>
-                                <th class="px-4 py-4 w-32">Estado</th>
-                                <th class="px-4 py-4 text-center w-16">Acción</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[10%]">Fecha</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[42%]">Actividad / Tarea</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[15%]">Solicitante</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[15%]">Responsable</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[10%] text-center">Estado</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 text-right w-[10%]">Detalles</th>
                             </tr>
                         </thead>
-                        <tbody id="taskTableBody" class="divide-y divide-slate-100">
-                            <!-- JS Injected -->
-                        </tbody>
+                        <tbody id="taskTableBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
-                <div id="noResults" class="hidden p-20 text-center">
+                <div id="noResultsJunta" class="hidden p-20 text-center">
                     <i data-lucide="folder-search" class="mx-auto w-12 h-12 text-slate-300 mb-4"></i>
-                    <p class="text-slate-500 font-medium">No se encontraron resultados.</p>
+                    <p class="text-slate-500 font-medium">No se encontraron tareas.</p>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- VISTA DE CALENDARIO -->
-        <div id="calendarioView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <!-- Cabecera Mes/Año -->
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold text-slate-800 capitalize" id="currentMonthYear">Mes Año</h2>
-                    <div class="flex items-center gap-2">
-                        <button onclick="changeMonth(-1)" class="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                        <button onclick="resetMonth()" class="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-sm font-bold text-slate-600">Hoy</button>
-                        <button onclick="changeMonth(1)" class="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+    <div id="calendarioView" class="hidden-view min-h-screen pb-20">
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <button onclick="switchView('landing')" class="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors" title="Volver al inicio">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </button>
+                        <img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo" class="h-10 w-auto object-contain hidden sm:block">
+                        <div class="h-8 w-px bg-slate-300 mx-2 hidden sm:block"></div>
+                        <div>
+                            <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Calendario Departamentos</h1>
+                            <p class="text-[10px] sm:text-xs text-slate-500 font-medium uppercase tracking-wider" id="calendarMonthLabel">Mes y Año</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-3 justify-end">
+                        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                            <button onclick="changeMonth(-1)" class="p-1.5 hover:bg-white rounded text-slate-600 shadow-sm"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                            <button onclick="resetMonth()" class="px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-white rounded shadow-sm">Hoy</button>
+                            <button onclick="changeMonth(1)" class="p-1.5 hover:bg-white rounded text-slate-600 shadow-sm"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                        </div>
+                        <div class="relative flex-grow sm:flex-grow-0">
+                            <select id="calDeptFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer w-full sm:w-48 font-medium">
+                                <option value="all">Todas las Áreas</option>
+                            </select>
+                            <i data-lucide="filter" class="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                        </div>
+                        <div class="flex gap-2 w-full sm:w-auto items-center justify-end">
+                            <button onclick="openPDFRangeModal('calendario')" class="h-10 px-4 flex items-center justify-center bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors shadow-sm gap-2" title="Descargar PDF">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                <span class="text-sm font-bold hidden sm:inline">Descargar Reporte</span>
+                            </button>
+                            <button onclick="openCalendarFormModal()" class="h-10 px-4 flex items-center justify-center bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span class="text-sm font-bold hidden sm:inline">Nuevo Evento</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Días Semana -->
-                <div class="grid grid-cols-7 gap-1 mb-2">
-                    <div class="text-center text-xs font-bold text-slate-400 uppercase">Dom</div>
-                    <div class="text-center text-xs font-bold text-slate-400 uppercase">Lun</div>
-                    <div class="text-center text-xs font-bold text-slate-400 uppercase">Mar</div>
-                    <div class="text-center text-xs font-bold text-slate-400 uppercase">Mié</div>
-                    <div class="text-center text-xs font-bold text-slate-400 uppercase">Jue</div>
-                    <div class="text-center text-xs font-bold text-slate-400 uppercase">Vie</div>
-                    <div class="text-center text-xs font-bold text-slate-400 uppercase">Sáb</div>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <div class="py-3">Dom</div><div class="py-3">Lun</div><div class="py-3">Mar</div>
+                    <div class="py-3">Mié</div><div class="py-3">Jue</div><div class="py-3">Vie</div><div class="py-3">Sáb</div>
                 </div>
-                
-                <!-- Cuadrícula -->
-                <div id="calendarGrid" class="calendar-grid">
-                    <!-- JS Injected -->
+                <div id="calendarGrid" class="grid grid-cols-7 auto-rows-[120px] bg-slate-200 gap-px">
+                    <!-- JS INJECTED CALENDAR -->
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- ================= MODALES ================= -->
+    <div id="pdfRangeModal" class="fixed inset-0 z-[60] hidden-view flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal('pdfRangeModal')"></div>
+        <div class="bg-white rounded-2xl w-full max-w-sm relative z-10 shadow-2xl overflow-hidden p-6">
+            <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"><i data-lucide="file-text" class="w-5 h-5 text-slate-500"></i> Reporte PDF</h2>
+            <p class="text-sm text-slate-600 mb-4">Seleccione el rango de fechas para generar el reporte.</p>
+            <input type="hidden" id="pdfModuleType">
+            <div class="space-y-3 mb-6">
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Desde</label>
+                    <input type="date" id="pdfStartDate" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-slate-500">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Hasta</label>
+                    <input type="date" id="pdfEndDate" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-slate-500">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal('pdfRangeModal')" class="px-4 py-2 text-slate-500 font-bold text-sm hover:bg-slate-50 rounded-lg">Cancelar</button>
+                <button onclick="confirmPDF()" class="px-4 py-2 bg-slate-800 text-white rounded-lg font-bold text-sm hover:bg-slate-900">Generar PDF</button>
+            </div>
+        </div>
+    </div>
 
-        <!-- Modal PDF Rango de Fechas -->
-        <div id="pdfRangeModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-            <div class="modal-overlay absolute inset-0" onclick="document.getElementById('pdfRangeModal').classList.add('hidden')"></div>
-            <div class="bg-white rounded-xl w-full max-w-sm relative z-10 shadow-2xl p-6">
-                <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Generar Reporte PDF</h3>
-                <p class="text-sm text-slate-500 mb-4">Seleccione el periodo para generar el reporte de actividades.</p>
-                <div class="space-y-3 mb-6">
+    <div id="formActivityModal" class="fixed inset-0 z-50 hidden-view flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal('formActivityModal')"></div>
+        <div class="bg-white rounded-2xl w-full max-w-xl relative z-10 shadow-2xl overflow-hidden">
+            <form id="activityForm" onsubmit="saveActivity(event)">
+                <input type="hidden" name="id" id="formTaskId">
+                <div class="bg-blue-600 px-6 py-4 text-white flex justify-between items-center">
+                    <h2 class="text-lg font-bold" id="formTitle">Agregar Nueva Actividad</h2>
+                    <button type="button" onclick="closeModal('formActivityModal')" class="text-blue-100 hover:text-white"><i data-lucide="x"></i></button>
+                </div>
+                <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha Solicitud</label>
+                            <input type="date" name="date" id="formDate" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Estado Inicial</label>
+                            <select name="status" id="formStatus" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en proceso">En Proceso</option>
+                                <option value="cumplida">Cumplida</option>
+                            </select>
+                        </div>
+                    </div>
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha Inicio</label>
-                        <input type="date" id="pdfStartDate" class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Tarea / Actividad</label>
+                        <textarea name="task" id="formTask" required rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Descripción..."></textarea>
                     </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha Fin</label>
-                        <input type="date" id="pdfEndDate" class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+
+                    <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                        <label class="text-xs font-bold text-indigo-600 uppercase block mb-2">Solicitante(s)</label>
+                        <div class="flex gap-2 mb-2">
+                            <input type="text" id="juntaRequesterInput" list="requestersDatalist" class="flex-grow px-3 py-2 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Escriba o seleccione un solicitante...">
+                            <datalist id="requestersDatalist"></datalist>
+                            <button type="button" onclick="addPill('requester')" class="px-3 py-2 bg-indigo-600 text-white font-bold text-xs rounded-lg hover:bg-indigo-700">Añadir</button>
+                        </div>
+                        <div id="requestersContainer" class="flex flex-wrap gap-2 min-h-[30px] p-2 bg-white rounded-lg border border-indigo-100 empty:hidden"></div>
+                        <input type="hidden" name="requester" id="formHiddenRequester" required>
+                    </div>
+
+                    <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                        <label class="text-xs font-bold text-blue-600 uppercase block mb-2">Responsable(s) / Apoyos</label>
+                        <div class="flex gap-2 mb-2">
+                            <input type="text" id="juntaRespInput" list="responsiblesDatalist" class="flex-grow px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Escriba o seleccione un responsable...">
+                            <datalist id="responsiblesDatalist"></datalist>
+                            <button type="button" onclick="addPill('responsible')" class="px-3 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-700">Añadir</button>
+                        </div>
+                        <div id="responsiblesContainer" class="flex flex-wrap gap-2 min-h-[30px] p-2 bg-white rounded-lg border border-blue-100 empty:hidden"></div>
+                        <input type="hidden" name="responsible" id="formHiddenResponsible" required>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase border-b border-slate-200 pb-2 mb-3">Evidencias y Detalles</h4>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Enlace Drive</label>
+                            <input type="url" name="image_url" id="formDriveLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="https://drive.google.com/...">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Enlace Facebook</label>
+                            <input type="url" name="fb_link" id="formFbLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="https://facebook.com/...">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Detalles / Historial Inicial</label>
+                            <textarea name="detail" id="formDetail" rows="2" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Observaciones preliminares..."></textarea>
+                        </div>
                     </div>
                 </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" onclick="document.getElementById('pdfRangeModal').classList.add('hidden')" class="px-4 py-2 text-slate-500 font-bold text-sm">Cancelar</button>
-                    <button type="button" onclick="executePDFGeneration()" class="px-4 py-2 bg-slate-900 text-white rounded-lg font-bold text-sm hover:bg-black">Descargar</button>
+                <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('formActivityModal')" class="px-4 py-2 text-slate-500 font-bold text-sm hover:bg-slate-200 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm shadow-md hover:bg-blue-700">Guardar Actividad</button>
                 </div>
-            </div>
+            </form>
         </div>
+    </div>
 
-        <!-- Modal Detalles TAREA (Junta Directiva) -->
-        <div id="taskModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-            <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
-            <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative z-10 shadow-2xl flex flex-col">
-                <div class="sticky top-0 bg-blue-600 px-6 py-4 flex items-center justify-between flex-shrink-0 z-20">
-                    <h2 class="text-lg font-bold text-white flex items-center gap-2"><i data-lucide="clipboard-list" class="w-5 h-5"></i> Detalles de Actividad</h2>
-                    <button onclick="closeModal()" class="p-2 hover:bg-blue-700 rounded-full text-blue-100"><i data-lucide="x"></i></button>
-                </div>
-                
-                <div class="p-8 overflow-y-auto flex-grow">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="space-y-6">
-                            <div>
-                                <label class="text-[10px] font-bold uppercase text-blue-600 mb-1 block">Tarea / Actividad</label>
-                                <p id="modalDesc" class="text-slate-800 font-medium text-lg leading-snug"></p>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Fecha Solicitud</label><p id="modalDate" class="text-slate-700 font-semibold text-sm"></p></div>
-                                <div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Ultimo Monitoreo</label><p id="modalMonitoreo" class="text-slate-700 font-semibold text-sm"></p></div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Solicitante(s)</label><div id="modalSolicitante" class="flex flex-wrap gap-1 mt-1"></div></div>
-                                <div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Responsable(s)</label><div id="modalResponsable" class="flex flex-wrap gap-1 mt-1"></div></div>
-                            </div>
+    <div id="taskModal" class="fixed inset-0 z-50 hidden-view flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal('taskModal')"></div>
+        <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative z-10 shadow-2xl flex flex-col">
+            <div class="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between z-20">
+                <h2 class="text-xl font-bold text-slate-900">Detalles de Actividad</h2>
+                <button onclick="closeModal('taskModal')" class="p-2 hover:bg-slate-100 rounded-full text-slate-400"><i data-lucide="x"></i></button>
+            </div>
+            <div class="p-8 overflow-y-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-blue-600 mb-1 block">Tarea / Actividad</label>
+                            <p id="modalDesc" class="text-slate-700 font-medium text-lg leading-snug"></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Fecha Solicitud</label><p id="modalDate" class="text-slate-700 font-semibold"></p></div>
+                            <div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Ultimo Monitoreo</label><p id="modalMonitoreo" class="text-slate-700 font-semibold"></p></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Solicitante(s)</label><div id="modalSolicitante" class="flex flex-col gap-1"></div></div>
+                            <div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Responsable(s)</label><div id="modalResponsable" class="flex flex-col gap-1"></div></div>
+                        </div>
 
-                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                <div class="flex items-center justify-between mb-2">
-                                    <label class="text-[10px] font-bold uppercase text-slate-500 block">Estado Actual</label>
-                                    <div id="modalStatusDisplay"></div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-[10px] font-bold uppercase text-slate-500 block">Estado Actual</label>
+                                <div id="modalStatusDisplay"></div>
+                            </div>
+                            <label class="text-[10px] font-bold uppercase text-slate-500 block mb-1">Historial / Detalles</label>
+                            <p id="modalDetalleAccion" class="text-slate-700 text-sm italic bg-white p-3 rounded border border-slate-100 whitespace-pre-line"></p>
+                        </div>
+
+                        <div id="updateStatusSection" class="hidden-view bg-blue-50 p-5 rounded-xl border border-blue-200 shadow-inner">
+                            <h3 class="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Seguimiento</h3>
+                            <form id="statusUpdateForm" onsubmit="saveStatusUpdate(event)">
+                                <input type="hidden" id="updateTaskId">
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label class="text-[10px] font-bold uppercase text-blue-600 block mb-1">Nuevo Estado</label>
+                                        <select id="updateStatusSelect" required class="w-full px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                            <option value="pendiente">Pendiente</option>
+                                            <option value="en proceso">En Proceso</option>
+                                            <option value="cumplida">Cumplida</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold uppercase text-blue-600 block mb-1">Fecha Seguimiento *</label>
+                                        <input type="date" id="updateDateInput" required class="w-full px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                    </div>
                                 </div>
-                                <label class="text-[10px] font-bold uppercase text-slate-500 block mb-1">Historial / Detalles</label>
-                                <p id="modalDetalleAccion" class="text-slate-700 text-sm italic bg-white p-3 rounded border border-slate-100 whitespace-pre-line"></p>
-                            </div>
-
-                            <div id="updateStatusSection" class="hidden bg-blue-50 p-5 rounded-xl border border-blue-200 shadow-inner">
-                                <h3 class="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Seguimiento</h3>
-                                <form id="statusUpdateForm" onsubmit="saveStatusUpdate(event)">
-                                    <input type="hidden" id="updateTaskId">
-                                    <div class="grid grid-cols-2 gap-3 mb-3">
-                                        <div><label class="text-[10px] font-bold uppercase text-blue-600 block mb-1">Nuevo Estado</label><select id="updateStatusSelect" required class="w-full px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"><option value="pendiente">Pendiente</option><option value="en proceso">En Proceso</option><option value="cumplida">Cumplida</option></select></div>
-                                        <div><label class="text-[10px] font-bold uppercase text-blue-600 block mb-1">Fecha Seguimiento *</label><input type="date" id="updateDateInput" required class="w-full px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="text-[10px] font-bold uppercase text-blue-600 block mb-1">Descripción del Seguimiento *</label>
-                                        <textarea id="updateDescInput" required rows="2" class="w-full px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Describa el avance..."></textarea>
-                                    </div>
-                                    <div class="flex justify-end gap-2">
-                                        <button type="button" onclick="toggleStatusUpdate()" class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-700">Cancelar</button>
-                                        <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors">Guardar Cambio</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <!-- Evidencia -->
-                        <div class="space-y-4">
-                            <label class="text-xs font-bold uppercase tracking-widest text-blue-600 block">Enlace Redes</label>
-                            <div id="facebookLinkContainer" class="border rounded-xl p-4 bg-slate-50 flex items-center justify-center border-dashed border-slate-300"></div>
-
-                            <label class="text-xs font-bold uppercase tracking-widest text-blue-600 block mt-4">Enlace Evidencia Drive</label>
-                            <div id="imageLinkContainer" class="border rounded-xl p-4 bg-slate-50 flex items-center justify-center border-dashed border-slate-300"></div>
+                                <div class="mb-3">
+                                    <label class="text-[10px] font-bold uppercase text-blue-600 block mb-1">Descripción del Seguimiento *</label>
+                                    <textarea id="updateDescInput" required rows="2" class="w-full px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Avance o resultado..."></textarea>
+                                </div>
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" onclick="toggleStatusUpdate()" class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-700">Cancelar</button>
+                                    <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700">Guardar Cambio</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                </div>
-
-                <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-between items-center flex-shrink-0 rounded-b-2xl">
-                    <div class="flex gap-2">
-                        <button id="btnDeleteTask" class="px-4 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2"><i data-lucide="trash-2" class="w-4 h-4"></i> <span>Eliminar</span></button>
-                    </div>
-                    <div class="flex gap-2">
-                        <button id="btnSendReminder" class="px-4 py-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg text-sm font-bold transition-colors flex items-center gap-2"><i data-lucide="bell-ring" class="w-4 h-4"></i> Recordatorio</button>
-                        <button id="btnEditTask" class="px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-sm font-bold transition-colors flex items-center gap-2"><i data-lucide="pencil" class="w-4 h-4"></i> Editar</button>
-                        <button onclick="toggleStatusUpdate()" class="px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-sm font-bold transition-colors flex items-center gap-2"><i data-lucide="edit-3" class="w-4 h-4"></i> Actualizar Estado</button>
-                        <button onclick="closeModal()" class="px-6 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-lg text-sm font-bold transition-colors">Cerrar</button>
+                    <div class="space-y-4">
+                         <label class="text-xs font-bold uppercase tracking-widest text-blue-600 block">Redes y Evidencia</label>
+                         <div id="facebookLinkContainer" class="border rounded-xl p-4 bg-slate-50 flex items-center justify-center border-dashed border-slate-300"></div>
+                         <div id="imageLinkContainer" class="border rounded-xl p-4 bg-slate-50 flex items-center justify-center border-dashed border-slate-300"></div>
                     </div>
                 </div>
             </div>
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-between items-center flex-wrap gap-4">
+                <button id="btnDeleteTask" class="px-4 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold flex items-center gap-2"><i data-lucide="trash-2" class="w-4 h-4"></i> <span>Eliminar</span></button>
+                <div class="flex gap-2 flex-wrap">
+                    <button id="btnEmailTask" class="px-4 py-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"><i data-lucide="bell" class="w-4 h-4"></i> Recordatorio</button>
+                    <button id="btnEditTask" class="px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-sm font-bold flex items-center gap-2"><i data-lucide="pencil" class="w-4 h-4"></i> Editar</button>
+                    <button onclick="toggleStatusUpdate()" class="px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-sm font-bold flex items-center gap-2"><i data-lucide="edit-3" class="w-4 h-4"></i> Seguimiento</button>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <!-- Modal Detalles EVENTO (Calendario) -->
-        <div id="eventDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-            <div class="modal-overlay absolute inset-0" onclick="closeEventDetailModal()"></div>
-            <div class="bg-white rounded-2xl w-full max-w-md relative z-10 shadow-2xl overflow-hidden flex flex-col">
-                <div id="eventDetailHeader" class="px-6 py-4 flex items-center justify-between">
-                    <h2 class="text-lg font-bold text-white" id="eventDetailTitle">Evento</h2>
-                    <button onclick="closeEventDetailModal()" class="text-white/80 hover:text-white"><i data-lucide="x"></i></button>
+    <div id="calendarFormModal" class="fixed inset-0 z-50 hidden-view flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal('calendarFormModal')"></div>
+        <div class="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl overflow-hidden">
+            <form id="calendarForm" onsubmit="saveEvent(event)">
+                <input type="hidden" id="calEventId">
+                <div class="bg-green-600 px-6 py-4 text-white flex justify-between items-center">
+                    <h2 class="text-lg font-bold" id="calFormTitle">Programar Nuevo Evento</h2>
+                    <button type="button" onclick="closeModal('calendarFormModal')" class="text-green-100 hover:text-white"><i data-lucide="x"></i></button>
                 </div>
                 <div class="p-6 space-y-4">
-                    <div class="flex items-start gap-3">
-                        <div class="bg-slate-100 p-2 rounded-lg text-slate-500"><i data-lucide="building-2" class="w-5 h-5"></i></div>
-                        <div>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">Departamento</p>
-                            <p class="text-sm font-bold text-slate-800" id="eventDetailDept"></p>
-                            <p class="text-xs text-slate-500" id="eventDetailDirector"></p>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Área / Departamento que Reporta</label>
+                        <select id="calDept" required onchange="updateEventDirector()" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer">
+                            <option value="" disabled selected>Seleccione el departamento...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Director Responsable</label>
+                        <input type="text" id="calDirector" readonly class="w-full px-4 py-2 bg-slate-50 border border-slate-200 text-slate-500 rounded-lg text-sm cursor-not-allowed">
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="col-span-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha</label>
+                            <input type="date" id="calDate" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div class="col-span-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Hora Inicio</label>
+                            <select id="calTimeStart" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer"></select>
+                        </div>
+                        <div class="col-span-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Hora Fin</label>
+                            <select id="calTimeEnd" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer"></select>
                         </div>
                     </div>
-                    <div class="flex items-start gap-3">
-                        <div class="bg-slate-100 p-2 rounded-lg text-slate-500"><i data-lucide="clock" class="w-5 h-5"></i></div>
-                        <div>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">Fecha y Horario</p>
-                            <p class="text-sm font-bold text-slate-800" id="eventDetailDate"></p>
-                            <p class="text-xs text-slate-600" id="eventDetailTime"></p>
-                        </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Lugar</label>
+                        <input type="text" id="calLocation" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500" placeholder="Ej. Auditorio Principal">
                     </div>
-                    <div class="flex items-start gap-3">
-                        <div class="bg-slate-100 p-2 rounded-lg text-slate-500"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
-                        <div>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">Lugar</p>
-                            <p class="text-sm font-medium text-slate-800" id="eventDetailLocation"></p>
-                        </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Nombre del Evento</label>
+                        <input type="text" id="calTitle" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 font-bold" placeholder="Título corto y claro">
                     </div>
-                    <div class="mt-4 pt-4 border-t border-slate-100">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Descripción</p>
-                        <p class="text-sm text-slate-600 whitespace-pre-line" id="eventDetailDesc"></p>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Descripción / Notas</label>
+                        <textarea id="calDesc" rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500" placeholder="Detalles adicionales..."></textarea>
                     </div>
                 </div>
-                <div class="bg-slate-50 px-6 py-4 flex justify-between gap-3 border-t border-slate-100">
-                    <button id="btnDeleteEvent" class="px-4 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2"><i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar</button>
-                    <div class="flex gap-2">
-                        <button id="btnEditEvent" class="px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-sm font-bold transition-colors">Editar</button>
-                        <button type="button" onclick="closeEventDetailModal()" class="px-4 py-2 text-slate-500 bg-slate-200 hover:bg-slate-300 rounded-lg font-bold text-sm">Cerrar</button>
-                    </div>
+                <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('calendarFormModal')" class="px-4 py-2 text-slate-500 font-bold text-sm">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg font-bold text-sm shadow-md hover:bg-green-700">Guardar Evento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="calendarDetailModal" class="fixed inset-0 z-[60] hidden-view flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal('calendarDetailModal')"></div>
+        <div class="bg-white rounded-2xl w-full max-w-md relative z-10 shadow-2xl overflow-hidden flex flex-col">
+            <div id="calDetailHeader" class="px-6 py-4 flex items-center justify-between z-20 text-white">
+                <h2 class="text-lg font-bold truncate pr-4" id="cdTitle">Evento</h2>
+                <button onclick="closeModal('calendarDetailModal')" class="p-1 hover:bg-black/10 rounded-full"><i data-lucide="x"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-start gap-3">
+                    <div class="mt-1 bg-slate-100 p-2 rounded-lg text-slate-500"><i data-lucide="clock" class="w-5 h-5"></i></div>
+                    <div><p class="text-[10px] font-bold text-slate-400 uppercase">Fecha y Horario</p><p class="text-slate-800 font-bold" id="cdDateTime"></p></div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="mt-1 bg-slate-100 p-2 rounded-lg text-slate-500"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
+                    <div><p class="text-[10px] font-bold text-slate-400 uppercase">Lugar</p><p class="text-slate-800 font-medium" id="cdLocation"></p></div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="mt-1 bg-slate-100 p-2 rounded-lg text-slate-500"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+                    <div><p class="text-[10px] font-bold text-slate-400 uppercase">Departamento</p><p class="text-slate-800 font-medium" id="cdDept"></p><p class="text-xs text-slate-500 mt-0.5" id="cdDirector"></p></div>
+                </div>
+                <div class="border-t border-slate-100 pt-4 mt-2">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Descripción</p>
+                    <p class="text-sm text-slate-700 whitespace-pre-line" id="cdDesc"></p>
                 </div>
             </div>
-        </div>
-
-        <!-- Modal Formulario JUNTA DIRECTIVA -->
-        <div id="formActivityModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-            <div class="modal-overlay absolute inset-0" onclick="closeFormModal()"></div>
-            <div class="bg-white rounded-2xl w-full max-w-2xl relative z-10 shadow-2xl overflow-hidden">
-                <form id="activityForm" onsubmit="saveActivity(event)">
-                    <input type="hidden" name="id" id="formTaskId">
-                    <div class="bg-blue-600 px-6 py-4 text-white flex justify-between items-center">
-                        <h2 class="text-lg font-bold" id="formTitle">Nueva Actividad</h2>
-                        <button type="button" onclick="closeFormModal()" class="text-blue-100 hover:text-white"><i data-lucide="x"></i></button>
-                    </div>
-                    <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha Solicitud</label><input type="date" name="date" id="formDate" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500"></div>
-                            <div><label class="text-xs font-bold text-slate-500 uppercase block mb-1">Estado Inicial</label><select name="status" id="formStatus" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500"><option value="pendiente">Pendiente</option><option value="en proceso">En Proceso</option><option value="cumplida">Cumplida</option></select></div>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Tarea / Actividad</label>
-                            <textarea name="task" id="formTask" required rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Descripción..."></textarea>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
-                            <!-- Input Solicitantes Multiples -->
-                            <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
-                                <label class="text-xs font-bold text-indigo-700 uppercase block mb-2"><i data-lucide="users" class="w-3 h-3 inline"></i> Solicitante(s) *</label>
-                                <div class="flex gap-2 mb-2">
-                                    <input type="text" id="reqInput" list="reqList" class="flex-1 px-3 py-1.5 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Buscar o escribir...">
-                                    <datalist id="reqList"></datalist>
-                                    <button type="button" onclick="addPill('reqPills', 'reqInput', 'indigo')" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700">Añadir</button>
-                                </div>
-                                <div id="reqPills" class="flex flex-wrap gap-2 empty:hidden"></div>
-                                <input type="hidden" name="requester" id="formRequesterHidden">
-                            </div>
-
-                            <!-- Input Responsables Multiples -->
-                            <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-100">
-                                <label class="text-xs font-bold text-blue-700 uppercase block mb-2"><i data-lucide="user-check" class="w-3 h-3 inline"></i> Responsable(s) / Apoyo *</label>
-                                <div class="flex gap-2 mb-2">
-                                    <input type="text" id="respInput" list="respList" class="flex-1 px-3 py-1.5 bg-white border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Buscar o escribir...">
-                                    <datalist id="respList"></datalist>
-                                    <button type="button" onclick="addPill('respPills', 'respInput', 'blue')" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700">Añadir</button>
-                                </div>
-                                <div id="respPills" class="flex flex-wrap gap-2 empty:hidden"></div>
-                                <input type="hidden" name="responsible" id="formResponsibleHidden">
-                            </div>
-                        </div>
-
-                        <div><label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha de Monitoreo</label><input type="date" name="monitoring" id="formMonitoring" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500"></div>
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-3">
-                            <div><label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2"><i data-lucide="facebook" class="w-3 h-3 text-blue-600"></i> Enlace Publicación Facebook</label><input type="url" name="fb_link" id="formFbLink" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="https://www.facebook.com/..."></div>
-                            <div><label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2"><i data-lucide="folder" class="w-3 h-3 text-green-600"></i> Enlace Carpeta/Archivo Drive</label><input type="url" name="image_url" id="formDriveLink" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="https://drive.google.com/..."></div>
-                        </div>
-                        <div><label class="text-xs font-bold text-slate-500 uppercase block mb-1">Detalle Acción Inicial</label><textarea name="detail" id="formDetail" rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Observaciones preliminares..."></textarea></div>
-                    </div>
-                    <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
-                        <button type="button" onclick="closeFormModal()" class="px-4 py-2 text-slate-500 font-bold text-sm">Cancelar</button>
-                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm shadow-md hover:bg-blue-700">Guardar Actividad</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Modal Formulario EVENTO (Calendario) -->
-        <div id="formEventModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-            <div class="modal-overlay absolute inset-0" onclick="closeEventFormModal()"></div>
-            <div class="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl overflow-hidden flex flex-col">
-                <form id="eventForm" onsubmit="saveEvent(event)">
-                    <input type="hidden" id="formEventId">
-                    <div class="bg-emerald-600 px-6 py-4 text-white flex items-center justify-between">
-                        <h2 class="text-lg font-bold" id="formEventTitle">Nuevo Evento</h2>
-                        <button type="button" onclick="closeEventFormModal()" class="text-emerald-100 hover:text-white"><i data-lucide="x"></i></button>
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Área / Departamento *</label>
-                                <select id="formEventDept" required onchange="updateEventDirector()" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 cursor-pointer"></select>
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Director de Área</label>
-                                <input type="text" id="formEventDirector" readonly class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 focus:outline-none">
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Nombre del Evento *</label>
-                            <input type="text" id="formEventName" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-emerald-500" placeholder="Ej: Capacitación a comerciantes">
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha *</label>
-                                <input type="date" id="formEventDate" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Hora Inicio *</label>
-                                <select id="formEventStartTime" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 cursor-pointer"></select>
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Hora Fin *</label>
-                                <select id="formEventEndTime" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 cursor-pointer"></select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Lugar</label>
-                            <input type="text" id="formEventLocation" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-emerald-500" placeholder="Auditorio principal, virtual, etc.">
-                        </div>
-                        
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Descripción de la Actividad</label>
-                            <textarea id="formEventDesc" rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-emerald-500" placeholder="Detalles adicionales..."></textarea>
-                        </div>
-                    </div>
-                    <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
-                        <button type="button" onclick="closeEventFormModal()" class="px-4 py-2 text-slate-500 font-bold text-sm">Cancelar</button>
-                        <button type="submit" class="px-6 py-2 bg-emerald-600 text-white rounded-lg font-bold text-sm shadow-md hover:bg-emerald-700">Guardar Evento</button>
-                    </div>
-                </form>
+            <div class="bg-slate-50 px-6 py-4 flex justify-between gap-3 border-t border-slate-100">
+                <button id="btnDeleteEvent" class="px-4 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar</button>
+                <div class="flex gap-2">
+                    <button id="btnEditEvent" class="px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all"><i data-lucide="pencil" class="w-4 h-4"></i> Editar</button>
+                    <button onclick="closeModal('calendarDetailModal')" class="px-4 py-2 text-slate-600 font-bold text-sm bg-slate-200 hover:bg-slate-300 rounded-lg">Cerrar</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        
-        // --- CONSTANTES ---
         const API_URL = "https://script.google.com/macros/s/AKfycbxsFM9UFshN0u7waQO4g31EFj0bEIPLnRjaDFQSd2k-laVUojzuZ8J98Omn6sRGJ0stcA/exec";
-        
-        // Base64 Logo (Reemplaza el string vacío con el código Base64 larguísimo generado)
-        const LOGO_BASE64 = ""; // <-- Pega tu Base64 aquí adentro
-        
+
+        const BOARD_MEMBERS = [
+            "Dr. Alexander Sánchez", "Dr. Cristian Huertas", "Dr. Edgar López", "Dr. Edwin Pérez",
+            "Dr. Iván Flórez", "Dr. Jesús Verdugo", "Dr. Miguel Leyton", "Dr. Néstor Pantoja",
+            "Dr. William Bastidas", "Dr. Pedro Alberto Jácome"
+        ];
+
+        const DEPT_RESPONSIBLES = [
+            "Iván Javier Flórez", "Alexandra Flórez Ortega", "Jhon Jairo Suárez", "Jesús Andrés Pérez",
+            "Jenifer Paguay Goyes", "Alex Gabriel Oviedo", "Jenifer Leonela Imbaquí", "Julio David Jácome", "Ingrid Carolina Cárdenas"
+        ];
+
         const DEPARTAMENTOS = {
-            "PRESIDENCIA EJECUTIVA": "Iván Javier Flórez Portilla",
+            "PRESIDENCIA EJECUTIVA": "Iván Javier Flórez",
             "DIRECCIÓN JURÍDICA Y DE REGISTRO PÚBLICO": "Alexandra Flórez Ortega",
             "DIRECCIÓN ADMINISTRATIVA Y DE TALENTO HUMANO": "Sandra Patiño Camacho",
             "DIRECCIÓN DE COMPETITIVIDAD REGIONAL Y PROYECTOS": "Jhon Jairo Suárez",
             "DIRECCIÓN DE CAPACITACIÓN EMPRESARIAL": "Jesús Andrés Pérez",
             "DIRECCIÓN DE CONCILIACIÓN Y ARBITRAJE": "Alex Gabriel Oviedo",
-            "DIRECCIÓN DE ESTUDIOS ECONÓMICOS Y ALIANZAS ESTRATÉGICAS": "Jennifer Farneth Paguay",
+            "DIRECCIÓN DE ESTUDIOS ECONÓMICOS Y ALIANZAS ESTRATÉGICAS": "Jenifer Paguay Goyes",
             "DIRECCIÓN FINANCIERA Y CONTABLE": "Jenifer Leonela Imbaquí",
             "OFICINA DE CONTROL INTERNO Y CALIDAD": "Julio David Jácome"
         };
 
-        const BOARD_MEMBERS = [
-            "Dr. Alexander Sánchez", "Dr. Cristian Huertas", "Dr. Edgar López",
-            "Dr. Edwin Pérez", "Dr. Iván Flórez", "Dr. Jesús Verdugo",
-            "Dr. Miguel Leyton", "Dr. Néstor Pantoja", "Dr. William Bastidas", "Dr. Pedro Alberto Jácome"
-        ];
-
-        const RESP_MEMBERS = Object.values(DEPARTAMENTOS);
-
         const DEPT_COLORS = {
-            "PRESIDENCIA EJECUTIVA": "bg-slate-600 text-white",
-            "DIRECCIÓN JURÍDICA Y DE REGISTRO PÚBLICO": "bg-indigo-500 text-white",
-            "DIRECCIÓN ADMINISTRATIVA Y DE TALENTO HUMANO": "bg-teal-500 text-white",
-            "DIRECCIÓN DE COMPETITIVIDAD REGIONAL Y PROYECTOS": "bg-sky-500 text-white",
-            "DIRECCIÓN DE CAPACITACIÓN EMPRESARIAL": "bg-amber-500 text-white",
-            "DIRECCIÓN DE CONCILIACIÓN Y ARBITRAJE": "bg-rose-500 text-white",
-            "DIRECCIÓN DE ESTUDIOS ECONÓMICOS Y ALIANZAS ESTRATÉGICAS": "bg-fuchsia-500 text-white",
-            "DIRECCIÓN FINANCIERA Y CONTABLE": "bg-emerald-500 text-white",
-            "OFICINA DE CONTROL INTERNO Y CALIDAD": "bg-violet-500 text-white"
+            "PRESIDENCIA EJECUTIVA": "bg-blue-100 text-blue-800 border-blue-200",
+            "DIRECCIÓN JURÍDICA Y DE REGISTRO PÚBLICO": "bg-indigo-100 text-indigo-800 border-indigo-200",
+            "DIRECCIÓN ADMINISTRATIVA Y DE TALENTO HUMANO": "bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200",
+            "DIRECCIÓN DE COMPETITIVIDAD REGIONAL Y PROYECTOS": "bg-orange-100 text-orange-800 border-orange-200",
+            "DIRECCIÓN DE CAPACITACIÓN EMPRESARIAL": "bg-green-100 text-green-800 border-green-200",
+            "DIRECCIÓN DE CONCILIACIÓN Y ARBITRAJE": "bg-rose-100 text-rose-800 border-rose-200",
+            "DIRECCIÓN DE ESTUDIOS ECONÓMICOS Y ALIANZAS ESTRATÉGICAS": "bg-purple-100 text-purple-800 border-purple-200",
+            "DIRECCIÓN FINANCIERA Y CONTABLE": "bg-emerald-100 text-emerald-800 border-emerald-200",
+            "OFICINA DE CONTROL INTERNO Y CALIDAD": "bg-sky-100 text-sky-800 border-sky-200",
+            "DEFAULT": "bg-slate-100 text-slate-800 border-slate-200"
         };
 
-        // Festivos Colombia (2026 y 2027 parcial para el grid) Formato: YYYY-MM-DD
-        const FESTIVOS = ["2026-01-01","2026-01-12","2026-03-23","2026-04-02","2026-04-03","2026-05-01","2026-05-18","2026-06-08","2026-06-15","2026-06-29","2026-07-20","2026-08-07","2026-08-17","2026-10-12","2026-11-02","2026-11-16","2026-12-08","2026-12-25"];
+        const FESTIVOS_COLOMBIA = [
+            "2026-01-01", "2026-01-12", "2026-03-23", "2026-04-02", "2026-04-03", "2026-05-01",
+            "2026-05-18", "2026-06-08", "2026-06-15", "2026-06-29", "2026-07-20", "2026-08-07",
+            "2026-08-17", "2026-10-12", "2026-11-02", "2026-11-16", "2026-12-08", "2026-12-25"
+        ];
 
-        // --- ESTADO GLOBAL ---
-        let currentModule = null; 
         let tasks = [];
-        let events = [];
+        let calendarEvents = [];
+        let currentModule = 'landing';
         let chartInstance = null;
-        let currentDate = new Date(); // Para el calendario
+        let currentDate = new Date();
+        let pendingPills = { requester: [], responsible: [] };
 
-        
-        // --- HELPERS UI ---
-        function showToast(message, type = 'success') {
+        function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            const bg = type === 'error' ? 'bg-red-600' : (type === 'success' ? 'bg-green-600' : 'bg-blue-600');
-            toast.className = `toast ${bg} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 text-sm font-bold min-w-[250px]`;
-            toast.innerHTML = `<i data-lucide="${type==='error'?'alert-triangle':(type==='success'?'check-circle':'info')}" class="w-5 h-5"></i> ${message}`;
-            container.appendChild(toast);
+            const body = document.getElementById('toastBody');
+            const icon = document.getElementById('toastIcon');
+            const text = document.getElementById('toastMessage');
+            
+            text.textContent = message;
+            body.className = `px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 text-white ${type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-slate-800'}`;
+            icon.setAttribute('data-lucide', type === 'error' ? 'alert-circle' : type === 'success' ? 'check-circle' : 'info');
             lucide.createIcons();
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 4000);
+
+            container.classList.remove('toast-hide'); container.classList.add('toast-show');
+            setTimeout(() => { container.classList.remove('toast-show'); container.classList.add('toast-hide'); }, 4000);
         }
 
-        function setOverlay(show, text = "Sincronizando con la nube...") {
-            const overlay = document.getElementById('fullSyncOverlay');
-            document.getElementById('syncStatusText').textContent = text;
-            if(show) { overlay.classList.remove('hidden'); overlay.classList.add('flex'); } 
-            else { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
+        function showSync(show) {
+            const el = document.getElementById('fullSyncOverlay');
+            if(show) { el.classList.remove('hidden-view'); el.classList.add('flex'); }
+            else { el.classList.add('hidden-view'); el.classList.remove('flex'); }
+        }
+
+        function switchView(view) {
+            currentModule = view;
+            document.getElementById('landingView').classList.add('hidden-view');
+            document.getElementById('juntaView').classList.add('hidden-view');
+            document.getElementById('calendarioView').classList.add('hidden-view');
+            
+            if (view === 'landing') {
+                document.getElementById('landingView').classList.remove('hidden-view');
+            } else if (view === 'junta') {
+                document.getElementById('juntaView').classList.remove('hidden-view');
+                fetchDataFromAPI('junta');
+            } else if (view === 'calendario') {
+                document.getElementById('calendarioView').classList.remove('hidden-view');
+                fetchDataFromAPI('calendario');
+            }
         }
 
         function formatDate(dateStr) {
             if (!dateStr) return "";
-            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) { const [year, month, day] = dateStr.split('-'); return `${day}/${month}/${year}`; }
+            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const [y, m, d] = dateStr.split('-'); return `${d}/${m}/${y}`;
+            }
             const date = new Date(dateStr);
-            if (!isNaN(date.getTime())) return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }); 
+            if (!isNaN(date.getTime())) return date.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
             return dateStr;
         }
 
         function toInputDate(dateStr) {
             if (!dateStr) return "";
-            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr;
+            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr.substring(0, 10);
+            if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+                const [d, m, y] = dateStr.split('/'); return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+            }
             const date = new Date(dateStr);
             if (!isNaN(date.getTime())) return date.toISOString().split('T')[0];
             return "";
         }
 
-        // --- CONEXIÓN API ---
-        async function fetchDataFromAPI(type) {
-            setOverlay(true, "Descargando datos...");
+        async function fetchDataFromAPI(module) {
+            showSync(true);
             try {
-                const response = await fetch(`${API_URL}?type=${type}`);
-                const data = await response.json();
+                const url = `${API_URL}?type=${module}`;
+                const res = await fetch(url);
+                const data = await res.json();
                 
-                if (type === 'junta') {
+                if (module === 'junta') {
                     tasks = data.map(t => ({
-                        id: parseInt(t.id || t.ID) || Date.now() + Math.floor(Math.random() * 1000),
-                        date: toInputDate(t.date || t.Fecha || t.fecha),
-                        task: t.task || t.Tarea || t.tarea || t['Actividad / Tarea'],
-                        requester: t.requester || t.Solicitante || t.solicitante,
-                        responsible: t.responsible || t.Responsable || t.responsable,
-                        monitoring: toInputDate(t.monitoring || t['Fecha de Monitoreo'] || t.monitoreo),
-                        status: t.status || t.Estado || t.estado,
-                        detail: t.detail || t.Detalles || t.Historial || t['Detalle Acción Inicial'],
-                        fb_link: t.fb_link || t['Enlace Redes'],
-                        image_url: t.image_url || t['Enlace Evidencia Drive']
+                        id: parseInt(t.id || t.ID) || Date.now() + Math.random(),
+                        date: t.date || t.Fecha || t.fecha || "",
+                        task: t.task || t.Tarea || t['Actividad / Tarea'] || t.tarea || "",
+                        requester: t.requester || t.Solicitante || t.solicitante || "",
+                        responsible: t.responsible || t.Responsable || t.responsable || "",
+                        monitoring: t.monitoring || t.Monitoreo || t.monitoreo || "",
+                        status: t.status || t.Estado || t.estado || "pendiente",
+                        detail: t.detail || t.Detalles || t.Historial || t.Detalle || "",
+                        fb_link: t.fb_link || t.Facebook || t['Enlace Redes'] || "",
+                        image_url: t.image_url || t.Drive || t['Enlace Evidencia Drive'] || ""
                     }));
                     renderTasks();
                     populateJuntaFilters();
-                } else if (type === 'calendario') {
-                    events = data.map(t => ({
-                        id: parseInt(t.id || t.ID) || Date.now() + Math.floor(Math.random() * 1000),
-                        date: toInputDate(t.date || t.Fecha || t.fecha),
-                        startTime: t.startTime || t['Hora Inicio'] || t.Hora,
-                        endTime: t.endTime || t['Hora Fin'] || "",
-                        department: t.department || t.Departamento,
-                        director: t.director || t.Director,
-                        location: t.location || t.Lugar,
-                        name: t.name || t.Evento || t.Nombre,
-                        description: t.description || t.Descripcion || t.Detalles
-                    }));
-                    renderCalendar();
-                    populateCalFilters();
-                }
-            } catch (error) {
-                console.error("Error fetching:", error);
-                showToast("Error al cargar datos desde Google Sheets", "error");
-            } finally {
-                setOverlay(false);
-            }
-        }
-
-        async function saveDataToAPI(type) {
-            setOverlay(true, "Guardando en la nube...");
-            let payload = [];
-            
-            if (type === 'junta') {
-                payload = tasks.map(t => ({
-                    "id": t.id,
-                    "date": t.date, "Fecha": t.date,
-                    "task": t.task, "Tarea": t.task, "Actividad / Tarea": t.task,
-                    "requester": t.requester, "Solicitante": t.requester,
-                    "responsible": t.responsible, "Responsable": t.responsible,
-                    "monitoring": t.monitoring, "Fecha de Monitoreo": t.monitoring,
-                    "status": t.status, "Estado": t.status,
-                    "detail": t.detail, "Detalles": t.detail, "Historial": t.detail, "Detalle Acción Inicial": t.detail,
-                    "fb_link": t.fb_link, "Enlace Redes": t.fb_link,
-                    "image_url": t.image_url, "Enlace Evidencia Drive": t.image_url
-                }));
-            } else if (type === 'calendario') {
-                payload = events.map(e => ({
-                    "id": e.id, "ID": e.id,
-                    "date": e.date, "Fecha": e.date,
-                    "startTime": e.startTime, "Hora Inicio": e.startTime, "Hora": e.startTime,
-                    "endTime": e.endTime, "Hora Fin": e.endTime,
-                    "department": e.department, "Departamento": e.department,
-                    "director": e.director, "Director": e.director,
-                    "location": e.location, "Lugar": e.location,
-                    "name": e.name, "Evento": e.name, "Nombre": e.name,
-                    "description": e.description, "Descripcion": e.description, "Detalles": e.description
-                }));
-            }
-
-            try {
-                await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ type: type, payload: payload })
-                });
-                showToast("Datos guardados con éxito", "success");
-                // Reload from source to ensure consistency
-                await fetchDataFromAPI(type);
-            } catch (error) {
-                console.error("Error saving:", error);
-                showToast("Error al sincronizar con Google Sheets", "error");
-                setOverlay(false); // only close on error, success re-fetches which closes it
-            }
-        }
-
-        async function sendEmailReminder(taskId) {
-            const task = tasks.find(t => t.id === taskId);
-            if (!task) return;
-            
-            setOverlay(true, "Enviando recordatorio...");
-            try {
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ type: 'email_reminder', payload: task })
-                });
-                const result = await response.json();
-                if (result.status === "success") {
-                    showToast("Recordatorio enviado con éxito al responsable", "success");
                 } else {
-                    showToast("Error: " + result.message, "error");
+                    calendarEvents = data.map(t => ({
+                        id: parseInt(t.id || t.ID) || Date.now() + Math.random(),
+                        date: t.date || t.Fecha || t.fecha || "",
+                        startTime: t.startTime || t['Hora Inicio'] || t.Hora || "",
+                        endTime: t.endTime || t['Hora Fin'] || "",
+                        department: t.department || t.Departamento || t.departamento || "",
+                        director: t.director || t.Director || t.director || "",
+                        location: t.location || t.Lugar || t.lugar || "",
+                        title: t.title || t.Evento || t.evento || "",
+                        description: t.description || t.Descripcion || t.descripcion || ""
+                    }));
+                    populateCalFilters();
+                    renderCalendar();
                 }
             } catch (error) {
-                console.error("Error sending email:", error);
-                showToast("No se pudo enviar el correo.", "error");
+                console.error("Fetch error:", error);
+                showToast("Error de conexión al cargar datos", "error");
             } finally {
-                setOverlay(false);
+                showSync(false);
             }
         }
 
-        
-        // --- NAVEGACIÓN ---
-        function showLanding() {
-            document.getElementById('landingView').classList.remove('hidden');
-            document.getElementById('juntaView').classList.add('hidden');
-            document.getElementById('calendarioView').classList.add('hidden');
-            document.getElementById('mainHeader').classList.add('hidden');
-            currentModule = null;
-        }
+        async function saveDataToAPI(module) {
+            showSync(true);
+            try {
+                let payload = [];
+                if (module === 'junta') {
+                    payload = tasks.map(t => ({
+                        "ID": t.id, "Fecha": t.date, "Tarea": t.task, "Solicitante": t.requester,
+                        "Responsable": t.responsible, "Monitoreo": t.monitoring, "Estado": t.status,
+                        "Detalles": t.detail, "Facebook": t.fb_link, "Drive": t.image_url,
+                        "date": t.date, "task": t.task, "requester": t.requester, "responsible": t.responsible,
+                        "monitoring": t.monitoring, "status": t.status, "detail": t.detail, "fb_link": t.fb_link, "image_url": t.image_url
+                    }));
+                } else {
+                    payload = calendarEvents.map(t => ({
+                        "ID": t.id, "Fecha": t.date, "Hora Inicio": t.startTime, "Hora Fin": t.endTime,
+                        "Departamento": t.department, "Director": t.director, "Lugar": t.location,
+                        "Evento": t.title, "Descripcion": t.description,
+                        "date": t.date, "startTime": t.startTime, "endTime": t.endTime, "department": t.department,
+                        "director": t.director, "location": t.location, "title": t.title, "description": t.description
+                    }));
+                }
 
-        function openModule(module) {
-            document.getElementById('landingView').classList.add('hidden');
-            document.getElementById('mainHeader').classList.remove('hidden');
-            document.getElementById('juntaView').classList.add('hidden');
-            document.getElementById('calendarioView').classList.add('hidden');
-            currentModule = module;
-
-            const headerTitle = document.getElementById('headerTitle');
-            const headerActions = document.getElementById('headerActions');
-            headerActions.innerHTML = '';
-
-            if (module === 'junta') {
-                headerTitle.textContent = "Seguimiento Junta Directiva";
-                document.getElementById('juntaView').classList.remove('hidden');
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ type: module, payload: payload })
+                });
                 
-                headerActions.innerHTML = `
-                    <div class="relative"><input type="text" id="taskSearchInput" placeholder="Buscar actividad..." class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-48"><i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i></div>
-                    <div class="relative"><select id="responsibleFilter" class="pl-10 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-40 cursor-pointer"><option value="all">Responsable</option></select><i data-lucide="user-check" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i></div>
-                    <div class="relative"><select id="statusFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 cursor-pointer w-full sm:w-32"><option value="all">Estado</option><option value="cumplida">Cumplida</option><option value="pendiente">Pendiente</option><option value="en proceso">En Proceso</option></select></div>
-                    <div class="flex gap-2 items-center ml-2">
-                        <button onclick="document.getElementById('pdfRangeModal').classList.remove('hidden')" class="h-9 px-4 flex items-center justify-center bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors shadow-sm text-sm font-bold gap-2"><i data-lucide="download" class="w-4 h-4"></i> Descargar Reporte</button>
-                        <button onclick="openFormModal()" class="h-9 px-4 flex items-center justify-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm font-bold gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Nueva Actividad</button>
-                    </div>
-                `;
-                
-                document.getElementById('taskSearchInput').addEventListener('input', renderTasks);
-                document.getElementById('responsibleFilter').addEventListener('change', renderTasks);
-                document.getElementById('statusFilter').addEventListener('change', renderTasks);
-                
-                fetchDataFromAPI('junta');
-
-            } else if (module === 'calendario') {
-                headerTitle.textContent = "Calendario de Departamentos";
-                document.getElementById('calendarioView').classList.remove('hidden');
-                
-                headerActions.innerHTML = `
-                    <div class="relative"><select id="calDeptFilter" onchange="renderCalendar()" class="pl-10 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-emerald-500 w-full sm:w-64 cursor-pointer"><option value="all">Todas las Áreas</option></select><i data-lucide="filter" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i></div>
-                    <div class="flex gap-2 items-center ml-2">
-                        <button onclick="document.getElementById('pdfRangeModal').classList.remove('hidden')" class="h-9 px-4 flex items-center justify-center bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors shadow-sm text-sm font-bold gap-2"><i data-lucide="download" class="w-4 h-4"></i> Descargar Reporte</button>
-                        <button onclick="openEventFormModal()" class="h-9 px-4 flex items-center justify-center bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm text-sm font-bold gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Nuevo Evento</button>
-                    </div>
-                `;
-                
-                fetchDataFromAPI('calendario');
+                showToast("Datos guardados correctamente", "success");
+                await fetchDataFromAPI(module);
+            } catch (error) {
+                console.error("Save error:", error);
+                showToast("Error al guardar en la nube", "error");
+            } finally {
+                showSync(false);
             }
-            lucide.createIcons();
-        }
-
-        
-        // --- LÓGICA JUNTA DIRECTIVA ---
-        function getStatusClass(status) {
-            switch(status?.toLowerCase()) {
-                case 'cumplida': return 'bg-green-100 text-green-700 border-green-200';
-                case 'en proceso': return 'bg-amber-100 text-amber-700 border-amber-200';
-                case 'pendiente': return 'bg-red-100 text-red-700 border-red-200';
-                default: return 'bg-slate-100 text-slate-700 border-slate-200';
-            }
-        }
-
-        function processResponsibles(respString) {
-            if(!respString) return [];
-            return respString.split(/[,-]|\s{2,}|\by\b/).map(r => r.trim()).filter(r => r !== "");
-        }
-
-        function populateJuntaFilters() {
-            const select = document.getElementById('responsibleFilter');
-            if(!select) return;
-            const currentVal = select.value;
-            select.innerHTML = '<option value="all">Responsable</option>';
-            RESP_MEMBERS.sort().forEach(name => select.add(new Option(name, name)));
-            if(Array.from(select.options).some(o => o.value === currentVal)) select.value = currentVal;
         }
 
         function renderTasks() {
@@ -772,14 +709,14 @@
             const fResp = document.getElementById('responsibleFilter').value;
             const qTask = document.getElementById('taskSearchInput').value.toLowerCase();
             const tbody = document.getElementById('taskTableBody');
-            const noRes = document.getElementById('noResults');
+            const noRes = document.getElementById('noResultsJunta');
             tbody.innerHTML = '';
             
             const filtered = tasks.filter(t => {
-                const resps = processResponsibles(t.responsible);
-                const mStat = fStatus === 'all' || (t.status && t.status.toLowerCase() === fStatus.toLowerCase());
+                const resps = (t.responsible||"").split('-').map(x=>x.trim());
+                const mStat = fStatus === 'all' || (t.status||"").toLowerCase() === fStatus;
                 const mResp = fResp === 'all' || resps.includes(fResp);
-                const mTask = t.task && t.task.toLowerCase().includes(qTask);
+                const mTask = (t.task||"").toLowerCase().includes(qTask);
                 return mStat && mResp && mTask;
             });
 
@@ -788,553 +725,538 @@
             filtered.forEach(t => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 transition-colors group';
-                const respHTML = processResponsibles(t.responsible).map(r => `<span class="text-xs bg-slate-100 px-2 py-0.5 rounded border border-slate-200 block w-max mb-1 text-slate-600 font-medium">${r}</span>`).join('');
-                const reqHTML = processResponsibles(t.requester).map(r => `<span class="text-[11px] bg-slate-50 px-2 py-0.5 rounded border border-slate-200 block w-max mb-1 text-slate-500">${r}</span>`).join('');
+                
+                // Se reemplaza w-max block por inline-block max-w-full break-words para permitir que los nombres largos se ajusten
+                const respHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 font-medium inline-block max-w-full break-words mb-1">${r}</span><br>` : '').join('');
+                const reqHTML = (t.requester||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-100 font-medium inline-block max-w-full break-words mb-1">${r}</span><br>` : '').join('');
+                
+                let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
+                if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
 
                 tr.innerHTML = `
-                    <td class="px-4 py-4 text-sm font-bold text-slate-600 align-top whitespace-nowrap">${formatDate(t.date)}</td>
-                    <td class="px-4 py-4 align-top"><div class="text-sm font-bold text-slate-800 leading-snug">${t.task || "Sin Tarea"}</div></td>
-                    <td class="px-4 py-4 align-top"><div class="flex flex-col gap-0.5">${reqHTML || "N/A"}</div></td>
-                    <td class="px-4 py-4 align-top"><div class="flex flex-col gap-0.5">${respHTML || "N/A"}</div></td>
-                    <td class="px-4 py-4 align-top"><span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold border ${getStatusClass(t.status)} uppercase tracking-wider">${t.status || "Pendiente"}</span></td>
-                    <td class="px-4 py-4 text-center align-top"><button onclick="openModal(${t.id})" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Ver Detalles"><i data-lucide="info" class="w-5 h-5"></i></button></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 text-sm font-bold text-slate-600 align-top">${formatDate(t.date)}</td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top break-words"><div class="text-sm sm:text-base font-bold text-slate-800 leading-snug">${t.task || "Sin Tarea"}</div></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start">${reqHTML}</div></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start">${respHTML}</div></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top text-center"><span class="px-2 py-1 inline-flex rounded-full text-[10px] font-bold border uppercase tracking-wider ${sClass}">${t.status || "Pendiente"}</span></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 text-right align-top">
+                        <button onclick="openJuntaModal(${t.id})" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><i data-lucide="info" class="w-5 h-5"></i></button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
-            updateChart(filtered);
-            updateStats(filtered);
             lucide.createIcons();
+            updateJuntaStats(filtered);
+            updateJuntaChart(filtered);
         }
 
-        function updateStats(current) {
-            document.getElementById('count-cumplida').textContent = current.filter(t => t.status?.toLowerCase() === 'cumplida').length;
-            document.getElementById('count-pendiente').textContent = current.filter(t => t.status?.toLowerCase() === 'pendiente').length;
-            document.getElementById('count-proceso').textContent = current.filter(t => t.status?.toLowerCase() === 'en proceso').length;
+        function updateJuntaStats(filtered) {
+            document.getElementById('count-cumplida').textContent = filtered.filter(t => t.status === 'cumplida').length;
+            document.getElementById('count-pendiente').textContent = filtered.filter(t => t.status === 'pendiente').length;
+            document.getElementById('count-proceso').textContent = filtered.filter(t => t.status === 'en proceso').length;
         }
 
-        function updateChart(filtered) {
+        function updateJuntaChart(filtered) {
             const ctx = document.getElementById('statusChart').getContext('2d');
-            const counts = {
-                cumplida: filtered.filter(t => t.status?.toLowerCase() === 'cumplida').length,
-                pendiente: filtered.filter(t => t.status?.toLowerCase() === 'pendiente').length,
-                proceso: filtered.filter(t => t.status?.toLowerCase() === 'en proceso').length
-            };
-            const total = counts.cumplida + counts.pendiente + counts.proceso;
+            const counts = [
+                filtered.filter(t => t.status === 'cumplida').length,
+                filtered.filter(t => t.status === 'pendiente').length,
+                filtered.filter(t => t.status === 'en proceso').length
+            ];
+            const total = counts.reduce((a,b)=>a+b, 0);
             
             if (total === 0) {
                 document.getElementById('chartEmptyState').classList.remove('hidden');
-                if(chartInstance) chartInstance.destroy(); chartInstance = null; return;
-            } else { document.getElementById('chartEmptyState').classList.add('hidden'); }
+                if(chartInstance) chartInstance.destroy();
+                chartInstance = null;
+                return;
+            } else {
+                document.getElementById('chartEmptyState').classList.add('hidden');
+            }
 
             if (chartInstance) {
-                chartInstance.data.datasets[0].data = [counts.cumplida, counts.pendiente, counts.proceso]; chartInstance.update();
+                chartInstance.data.datasets[0].data = counts;
+                chartInstance.update();
             } else {
                 chartInstance = new Chart(ctx, {
                     type: 'doughnut',
-                    data: { labels: ['Cumplida', 'Pendiente', 'En Proceso'], datasets: [{ data: [counts.cumplida, counts.pendiente, counts.proceso], backgroundColor: ['#16a34a', '#dc2626', '#d97706'], borderWidth: 0, hoverOffset: 4 }] },
+                    data: { labels: ['Cumplida', 'Pendiente', 'En Proceso'], datasets: [{ data: counts, backgroundColor: ['#16a34a', '#dc2626', '#d97706'], borderWidth: 0 }] },
                     options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
                 });
             }
         }
 
-        function setupPillsUI() {
-            const setupDataList = (id, list) => { const dl = document.getElementById(id); dl.innerHTML = ''; list.forEach(v => dl.appendChild(new Option(v, v))); };
-            setupDataList('respList', RESP_MEMBERS);
-            setupDataList('reqList', BOARD_MEMBERS);
+        function populateJuntaFilters() {
+            const select = document.getElementById('responsibleFilter');
+            const current = select.value;
+            select.innerHTML = '<option value="all">Responsable</option>';
+            DEPT_RESPONSIBLES.forEach(name => select.add(new Option(name, name)));
+            select.value = current;
+
+            const dlReq = document.getElementById('requestersDatalist'); dlReq.innerHTML = '';
+            BOARD_MEMBERS.forEach(x => dlReq.appendChild(new Option(x)));
+            const dlResp = document.getElementById('responsiblesDatalist'); dlResp.innerHTML = '';
+            DEPT_RESPONSIBLES.forEach(x => dlResp.appendChild(new Option(x)));
         }
 
-        function addPill(containerId, inputId, colorTheme) {
-            const input = document.getElementById(inputId);
-            const val = input.value.trim();
-            if(!val) return;
-            
-            const container = document.getElementById(containerId);
-            // Check if already exists
-            let exists = false;
-            container.querySelectorAll('span').forEach(span => { if(span.getAttribute('data-val') === val) exists = true; });
-            if(exists) { input.value = ''; return; }
-
-            const pill = document.createElement('div');
-            pill.className = `flex items-center gap-1 bg-${colorTheme}-100 text-${colorTheme}-800 border border-${colorTheme}-200 px-2 py-1 rounded text-xs font-bold`;
-            pill.innerHTML = `<span data-val="${val}">${val}</span> <button type="button" class="text-${colorTheme}-500 hover:text-${colorTheme}-900" onclick="this.parentElement.remove()"><i data-lucide="x" class="w-3 h-3"></i></button>`;
-            container.appendChild(pill);
-            input.value = '';
-            lucide.createIcons();
-        }
-
-        function getPillsString(containerId) {
-            const container = document.getElementById(containerId);
-            const vals = Array.from(container.querySelectorAll('span')).map(s => s.getAttribute('data-val'));
-            return vals.join(" - ");
-        }
-
-        function loadPills(containerId, stringData, colorTheme) {
-            const container = document.getElementById(containerId);
+        function renderPills(type) {
+            const container = document.getElementById(`${type}sContainer`);
             container.innerHTML = '';
-            const items = processResponsibles(stringData);
-            items.forEach(val => {
+            pendingPills[type].forEach((name, index) => {
+                const color = type === 'requester' ? 'indigo' : 'blue';
                 const pill = document.createElement('div');
-                pill.className = `flex items-center gap-1 bg-${colorTheme}-100 text-${colorTheme}-800 border border-${colorTheme}-200 px-2 py-1 rounded text-xs font-bold`;
-                pill.innerHTML = `<span data-val="${val}">${val}</span> <button type="button" class="text-${colorTheme}-500 hover:text-${colorTheme}-900" onclick="this.parentElement.remove()"><i data-lucide="x" class="w-3 h-3"></i></button>`;
+                pill.className = `flex items-center gap-1 bg-${color}-100 text-${color}-800 px-2 py-1 rounded text-xs font-bold border border-${color}-200`;
+                pill.innerHTML = `<span>${name}</span> <button type="button" onclick="removePill('${type}', ${index})" class="text-${color}-500 hover:text-${color}-900"><i data-lucide="x" class="w-3 h-3"></i></button>`;
                 container.appendChild(pill);
             });
+            document.getElementById(`formHidden${type.charAt(0).toUpperCase() + type.slice(1)}`).value = pendingPills[type].join(" - ");
             lucide.createIcons();
         }
 
-        function openFormModal(taskId = null) {
-            setupPillsUI();
-            const form = document.getElementById('activityForm');
-            if (taskId) {
-                const t = tasks.find(x => x.id === taskId);
-                if (!t) return;
-                document.getElementById('formTitle').textContent = "Editar Actividad";
-                document.getElementById('formTaskId').value = t.id;
-                document.getElementById('formDate').value = toInputDate(t.date); 
-                document.getElementById('formStatus').value = t.status ? t.status.toLowerCase() : 'pendiente';
-                document.getElementById('formTask').value = t.task;
-                
-                loadPills('reqPills', t.requester, 'indigo');
-                loadPills('respPills', t.responsible, 'blue');
-
-                document.getElementById('formMonitoring').value = toInputDate(t.monitoring); 
-                document.getElementById('formDetail').value = t.detail;
-                document.getElementById('formFbLink').value = t.fb_link || "";
-                document.getElementById('formDriveLink').value = t.image_url || "";
-            } else {
-                form.reset();
-                document.getElementById('formTitle').textContent = "Nueva Actividad";
-                document.getElementById('formTaskId').value = "";
-                document.getElementById('formDate').valueAsDate = new Date();
-                document.getElementById('reqPills').innerHTML = '';
-                document.getElementById('respPills').innerHTML = '';
+        function addPill(type) {
+            const input = document.getElementById(type === 'requester' ? 'juntaRequesterInput' : 'juntaRespInput');
+            const val = input.value.trim();
+            if (val && !pendingPills[type].includes(val)) {
+                pendingPills[type].push(val);
+                renderPills(type);
+                input.value = '';
             }
-            document.getElementById('formActivityModal').classList.remove('hidden');
         }
 
-        function closeFormModal() { document.getElementById('formActivityModal').classList.add('hidden'); }
+        function removePill(type, index) { pendingPills[type].splice(index, 1); renderPills(type); }
+
+        function openJuntaFormModal(id = null) {
+            document.getElementById('activityForm').reset();
+            pendingPills = { requester: [], responsible: [] };
+            renderPills('requester'); renderPills('responsible');
+            document.getElementById('formTitle').textContent = "Agregar Nueva Actividad";
+            document.getElementById('formDate').valueAsDate = new Date();
+            
+            if (id) {
+                const t = tasks.find(x => x.id === id);
+                if (t) {
+                    document.getElementById('formTitle').textContent = "Editar Actividad";
+                    document.getElementById('formTaskId').value = t.id;
+                    document.getElementById('formDate').value = toInputDate(t.date);
+                    document.getElementById('formStatus').value = t.status || 'pendiente';
+                    document.getElementById('formTask').value = t.task;
+                    document.getElementById('formDriveLink').value = t.image_url;
+                    document.getElementById('formFbLink').value = t.fb_link;
+                    document.getElementById('formDetail').value = t.detail;
+                    
+                    if(t.requester) { pendingPills.requester = t.requester.split('-').map(s=>s.trim()).filter(x=>x); renderPills('requester'); }
+                    if(t.responsible) { pendingPills.responsible = t.responsible.split('-').map(s=>s.trim()).filter(x=>x); renderPills('responsible'); }
+                }
+            }
+            document.getElementById('formActivityModal').classList.remove('hidden-view');
+        }
 
         async function saveActivity(e) {
             e.preventDefault();
-            const reqStr = getPillsString('reqPills');
-            const respStr = getPillsString('respPills');
+            if (pendingPills.requester.length === 0) { showToast("Añade al menos un Solicitante", "error"); return; }
+            if (pendingPills.responsible.length === 0) { showToast("Añade al menos un Responsable", "error"); return; }
             
-            if(!reqStr || !respStr) {
-                showToast("Debes añadir al menos un solicitante y un responsable.", "error");
-                return;
-            }
-
             const fd = new FormData(e.target);
             const idVal = fd.get('id');
             const taskData = {
-                date: fd.get('date'), task: fd.get('task'),
-                requester: reqStr, responsible: respStr,
-                monitoring: fd.get('monitoring'), status: fd.get('status'),
-                detail: fd.get('detail'), fb_link: fd.get('fb_link'), image_url: fd.get('image_url')
+                date: fd.get('date'), task: fd.get('task'), status: fd.get('status'),
+                requester: fd.get('requester'), responsible: fd.get('responsible'),
+                image_url: fd.get('image_url'), fb_link: fd.get('fb_link'), detail: fd.get('detail'), monitoring: ""
             };
 
             if (idVal) {
                 const idx = tasks.findIndex(t => t.id == idVal);
-                if (idx !== -1) tasks[idx] = { ...tasks[idx], ...taskData };
+                if (idx > -1) Object.assign(tasks[idx], taskData);
             } else {
                 tasks.unshift({ id: Date.now(), ...taskData });
             }
-            closeFormModal();
-            closeModal();
+            
+            closeModal('formActivityModal');
+            closeModal('taskModal');
             await saveDataToAPI('junta');
         }
 
-        function toggleStatusUpdate() {
-            const sec = document.getElementById('updateStatusSection');
-            sec.classList.toggle('hidden');
-            if(!sec.classList.contains('hidden')) document.getElementById('updateDateInput').valueAsDate = new Date();
-        }
-
-        async function saveStatusUpdate(e) {
-            e.preventDefault();
-            const taskId = parseInt(document.getElementById('updateTaskId').value);
-            const newStatus = document.getElementById('updateStatusSelect').value;
-            const newDate = document.getElementById('updateDateInput').value;
-            const desc = document.getElementById('updateDescInput').value;
-            const idx = tasks.findIndex(t => t.id === taskId);
-            
-            if (idx !== -1) {
-                tasks[idx].status = newStatus;
-                tasks[idx].monitoring = newDate;
-                const currentDetail = tasks[idx].detail || "";
-                tasks[idx].detail = `[${formatDate(newDate)} - ${newStatus.toUpperCase()}] ${desc}\n${currentDetail}`;
-                
-                closeModal();
-                await saveDataToAPI('junta'); 
-            }
-        }
-
-        function openModal(id) {
+        function openJuntaModal(id) {
             const t = tasks.find(x => x.id === id);
-            if (!t) return; 
-
-            document.getElementById('modalDesc').textContent = t.task || "Sin descripción";
+            if (!t) return;
+            
+            document.getElementById('modalDesc').textContent = t.task;
             document.getElementById('modalDate').textContent = formatDate(t.date);
             document.getElementById('modalMonitoreo').textContent = formatDate(t.monitoring) || "N/A";
+            document.getElementById('modalDetalleAccion').innerText = t.detail || "Sin detalles.";
             
-            document.getElementById('modalSolicitante').innerHTML = processResponsibles(t.requester).map(r => `<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-bold">${r}</span>`).join('');
-            document.getElementById('modalResponsable').innerHTML = processResponsibles(t.responsible).map(r => `<span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 font-bold">${r}</span>`).join('');
+            document.getElementById('modalSolicitante').innerHTML = (t.requester||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-medium w-max">${r}</span>` : '').join('');
+            document.getElementById('modalResponsable').innerHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 font-medium w-max">${r}</span>` : '').join('');
             
-            document.getElementById('modalStatusDisplay').innerHTML = `<span class="px-3 py-1 rounded-full font-bold text-xs border ${getStatusClass(t.status)} uppercase tracking-wider">${t.status || "Pendiente"}</span>`;
-            document.getElementById('modalDetalleAccion').innerText = t.detail || "Sin detalles adicionales.";
+            let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
+            if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
+            if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
+            if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
+            document.getElementById('modalStatusDisplay').innerHTML = `<span class="px-3 py-1 rounded-full font-bold text-xs border uppercase tracking-wider ${sClass}">${t.status}</span>`;
 
-            const fbC = document.getElementById('facebookLinkContainer');
+            const fbContainer = document.getElementById('facebookLinkContainer');
             if (t.fb_link) {
-                fbC.innerHTML = `<div class="w-full flex justify-between items-center gap-4"><div class="flex items-center gap-2 text-blue-800"><i data-lucide="facebook" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">${t.fb_link}</span></div><a href="${t.fb_link}" target="_blank" class="text-xs bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-bold flex items-center gap-2"><span>Ver Post</span><i data-lucide="external-link" class="w-3 h-3"></i></a></div>`;
-            } else { fbC.innerHTML = `<p class="text-sm text-slate-400">Sin enlace.</p>`; }
+                fbContainer.innerHTML = `<a href="${t.fb_link}" target="_blank" class="text-xs bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-bold shadow-sm flex items-center gap-2"><i data-lucide="facebook" class="w-4 h-4"></i> Ver Publicación <i data-lucide="external-link" class="w-3 h-3"></i></a>`;
+            } else { fbContainer.innerHTML = `<p class="text-xs text-slate-400">Sin enlace de Facebook</p>`; }
 
-            const drC = document.getElementById('imageLinkContainer');
+            const driveContainer = document.getElementById('imageLinkContainer');
             if (t.image_url) {
-                drC.innerHTML = `<div class="w-full flex justify-between items-center gap-4"><div class="flex items-center gap-2 text-green-700"><i data-lucide="folder" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Enlace Drive</span></div><a href="${t.image_url}" target="_blank" class="text-xs bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-bold flex items-center gap-2"><span>Abrir</span><i data-lucide="external-link" class="w-3 h-3"></i></a></div>`;
-            } else { drC.innerHTML = `<p class="text-sm text-slate-400">Sin enlace.</p>`; }
+                driveContainer.innerHTML = `<a href="${t.image_url}" target="_blank" class="text-xs bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-bold shadow-sm flex items-center gap-2"><i data-lucide="folder" class="w-4 h-4"></i> Abrir Drive <i data-lucide="external-link" class="w-3 h-3"></i></a>`;
+            } else { driveContainer.innerHTML = `<p class="text-xs text-slate-400">Sin enlace Drive</p>`; }
 
             document.getElementById('updateTaskId').value = t.id;
-            document.getElementById('updateStatusSelect').value = t.status ? t.status.toLowerCase() : 'pendiente';
-            document.getElementById('updateStatusSection').classList.add('hidden');
-            
-            document.getElementById('btnEditTask').onclick = () => { closeModal(); openFormModal(t.id); };
-            
-            const btnDel = document.getElementById('btnDeleteTask');
-            btnDel.querySelector('span').textContent = "Eliminar";
-            btnDel.className = "px-4 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2";
-            btnDel.onclick = async () => {
-                if (btnDel.querySelector('span').textContent === "¿Confirmar?") {
-                    tasks = tasks.filter(x => x.id !== t.id);
-                    closeModal(); await saveDataToAPI('junta');
-                } else {
-                    btnDel.querySelector('span').textContent = "¿Confirmar?";
-                    btnDel.className = "px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2";
-                }
-            };
+            document.getElementById('updateStatusSelect').value = t.status || 'pendiente';
+            document.getElementById('updateDateInput').valueAsDate = new Date();
+            document.getElementById('updateDescInput').value = '';
+            document.getElementById('updateStatusSection').classList.add('hidden-view');
 
-            document.getElementById('btnSendReminder').onclick = () => {
-                sendEmailReminder(t.id);
+            document.getElementById('btnEditTask').onclick = () => { closeModal('taskModal'); openJuntaFormModal(t.id); };
+            document.getElementById('btnDeleteTask').onclick = async () => {
+                if(confirm("¿Eliminar actividad?")) { tasks = tasks.filter(x => x.id !== t.id); closeModal('taskModal'); await saveDataToAPI('junta'); }
             };
+            document.getElementById('btnEmailTask').onclick = () => { sendEmailReminder(t); };
 
-            document.getElementById('taskModal').classList.remove('hidden');
+            document.getElementById('taskModal').classList.remove('hidden-view');
             lucide.createIcons();
         }
 
-        function closeModal() { document.getElementById('taskModal').classList.add('hidden'); }
+        function toggleStatusUpdate() { document.getElementById('updateStatusSection').classList.toggle('hidden-view'); }
 
-        
-        // --- LÓGICA CALENDARIO ---
-        function populateCalFilters() {
-            const selectFilter = document.getElementById('calDeptFilter');
-            const selectForm = document.getElementById('formEventDept');
-            const currentFilter = selectFilter ? selectFilter.value : 'all';
-            
-            if(selectFilter) selectFilter.innerHTML = '<option value="all">Todas las Áreas</option>';
-            if(selectForm) selectForm.innerHTML = '<option value="" disabled selected>Seleccione área...</option>';
-            
-            Object.keys(DEPARTAMENTOS).sort().forEach(dept => {
-                if(selectFilter) selectFilter.add(new Option(dept, dept));
-                if(selectForm) selectForm.add(new Option(dept, dept));
-            });
-            if(selectFilter) selectFilter.value = currentFilter;
-
-            const timeOpts = [];
-            for(let i=0; i<24; i++) {
-                const hh = i.toString().padStart(2,'0') + ":00";
-                timeOpts.push(`<option value="${hh}">${hh}</option>`);
+        async function saveStatusUpdate(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('updateTaskId').value);
+            const idx = tasks.findIndex(t => t.id === id);
+            if (idx > -1) {
+                tasks[idx].status = document.getElementById('updateStatusSelect').value;
+                tasks[idx].monitoring = document.getElementById('updateDateInput').value;
+                const desc = document.getElementById('updateDescInput').value;
+                tasks[idx].detail = `[${formatDate(tasks[idx].monitoring)} - ${tasks[idx].status.toUpperCase()}] ${desc}\n${tasks[idx].detail || ""}`;
+                
+                closeModal('taskModal');
+                await saveDataToAPI('junta');
             }
-            document.getElementById('formEventStartTime').innerHTML = timeOpts.join('');
-            document.getElementById('formEventEndTime').innerHTML = timeOpts.join('');
         }
 
-        function updateEventDirector() {
-            const dept = document.getElementById('formEventDept').value;
-            document.getElementById('formEventDirector').value = DEPARTAMENTOS[dept] || "";
+        async function sendEmailReminder(task) {
+            showSync(true);
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ type: 'email_reminder', payload: task })
+                });
+                const data = await res.json();
+                if(data.status === 'success') showToast("Recordatorio enviado al correo del responsable", "success");
+                else showToast(data.message || "Error al enviar correo", "error");
+            } catch (e) { showToast("Error de conexión al enviar correo", "error"); }
+            finally { showSync(false); }
         }
 
-        function changeMonth(delta) {
-            currentDate.setMonth(currentDate.getMonth() + delta);
-            renderCalendar();
+        function populateCalFilters() {
+            const select = document.getElementById('calDeptFilter');
+            const current = select.value;
+            select.innerHTML = '<option value="all">Todas las Áreas</option>';
+            Object.keys(DEPARTAMENTOS).forEach(d => select.add(new Option(d, d)));
+            select.value = current;
+
+            const formDept = document.getElementById('calDept');
+            formDept.innerHTML = '<option value="" disabled selected>Seleccione el departamento...</option>';
+            Object.keys(DEPARTAMENTOS).forEach(d => formDept.add(new Option(d, d)));
+
+            const ts = document.getElementById('calTimeStart'); const te = document.getElementById('calTimeEnd');
+            ts.innerHTML=''; te.innerHTML='';
+            for(let i=0; i<24; i++) {
+                const h = i.toString().padStart(2, '0') + ':00';
+                ts.add(new Option(h,h)); te.add(new Option(h,h));
+            }
+            
+            document.getElementById('calDeptFilter').addEventListener('change', renderCalendar);
         }
 
-        function resetMonth() {
-            currentDate = new Date();
-            renderCalendar();
-        }
-
-        function isHoliday(dateStr) { return FESTIVOS.includes(dateStr); }
+        function changeMonth(dir) { currentDate.setMonth(currentDate.getMonth() + dir); renderCalendar(); }
+        function resetMonth() { currentDate = new Date(); renderCalendar(); }
 
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
+            const filterDept = document.getElementById('calDeptFilter').value;
             
-            document.getElementById('currentMonthYear').textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(currentDate);
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            document.getElementById('calendarMonthLabel').textContent = `${monthNames[month]} ${year}`;
             
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startingDay = firstDay.getDay(); // 0 = Sun
-            const daysInMonth = lastDay.getDate();
-            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
             const grid = document.getElementById('calendarGrid');
             grid.innerHTML = '';
             
-            const filterDept = document.getElementById('calDeptFilter').value;
-            
-            // Empty slots
-            for (let i = 0; i < startingDay; i++) {
-                const emptyDiv = document.createElement('div');
-                emptyDiv.className = 'calendar-day bg-slate-50';
-                grid.appendChild(emptyDiv);
+            for (let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div class="bg-slate-50 opacity-50 p-2 border-r border-b border-slate-200"></div>`;
             }
             
-            const todayStr = new Date().toISOString().split('T')[0];
-
-            for (let i = 1; i <= daysInMonth; i++) {
-                const dateObj = new Date(year, month, i);
-                // Adjust timezone offset locally for string generation
-                const localDateStr = new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dDate = new Date(year, month, day);
+                const isWeekend = dDate.getDay() === 0 || dDate.getDay() === 6;
+                const dateStr = `${year}-${(month+1).toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
+                const isHoliday = FESTIVOS_COLOMBIA.includes(dateStr);
                 
-                const isWknd = dateObj.getDay() === 0 || dateObj.getDay() === 6;
-                const isHol = isHoliday(localDateStr);
-                const isToday = localDateStr === todayStr;
+                const isToday = (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear());
+                let dayClass = "bg-white p-2 border-r border-b border-slate-200 relative group min-h-[120px] transition-colors";
+                if (isWeekend || isHoliday) dayClass = "bg-slate-100 p-2 border-r border-b border-slate-200 relative group min-h-[120px]";
                 
-                const dayDiv = document.createElement('div');
-                dayDiv.className = `calendar-day group ${isWknd ? 'weekend' : ''} ${isHol ? 'holiday' : ''} ${isToday ? 'today ring-2 ring-blue-500 ring-inset' : ''}`;
-                
-                let headerHTML = `<div class="calendar-day-header">${i}</div>`;
-                if(isHol) headerHTML = `<div class="calendar-day-header flex justify-between items-center"><i data-lucide="flag" class="w-3 h-3 text-red-400"></i> ${i}</div>`;
-                
-                let html = headerHTML + `<div class="flex flex-col gap-1 overflow-y-auto flex-grow custom-scrollbar">`;
-                
-                const dayEvents = events.filter(e => e.date === localDateStr && (filterDept === 'all' || e.department === filterDept));
-                // Sort by time
-                dayEvents.sort((a,b) => (a.startTime || "").localeCompare(b.startTime || ""));
-                
-                dayEvents.forEach(e => {
-                    const bgClass = DEPT_COLORS[e.department] || 'bg-slate-500 text-white';
-                    html += `<div onclick="openEventDetail(${e.id})" class="text-[10px] ${bgClass} px-1.5 py-0.5 rounded shadow-sm cursor-pointer truncate font-medium hover:brightness-110 transition-all">${e.name}</div>`;
+                let eventsHtml = '';
+                const dayEvents = calendarEvents.filter(e => {
+                    const eDate = toInputDate(e.date);
+                    return eDate === dateStr && (filterDept === 'all' || e.department === filterDept);
                 });
                 
-                html += `</div>`;
+                dayEvents.sort((a,b) => (a.startTime||"").localeCompare(b.startTime||""));
                 
-                // Botón + verde en hover
-                html += `
-                    <button onclick="openEventFormModal(null, '${localDateStr}')" class="absolute bottom-1 right-1 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-green-600 hover:scale-110">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                    </button>
-                `;
+                dayEvents.forEach(ev => {
+                    const cClass = DEPT_COLORS[ev.department] || DEPT_COLORS['DEFAULT'];
+                    eventsHtml += `<div onclick="openCalendarDetail(${ev.id})" class="mt-1 px-1.5 py-1 ${cClass} rounded text-[10px] font-bold truncate cursor-pointer hover:opacity-80 border shadow-sm" title="${ev.title}">${ev.title}</div>`;
+                });
 
-                dayDiv.innerHTML = html;
-                grid.appendChild(dayDiv);
+                grid.innerHTML += `
+                    <div class="${dayClass}">
+                        <div class="flex justify-between items-start">
+                            <span class="text-sm font-bold ${isToday ? 'bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center' : 'text-slate-500'}">${day}</span>
+                            ${isHoliday ? '<i data-lucide="flag" class="w-3 h-3 text-red-400"></i>' : ''}
+                        </div>
+                        <div class="mt-1 flex flex-col gap-1 max-h-[80px] overflow-y-auto custom-scrollbar">${eventsHtml}</div>
+                        <button onclick="openCalendarFormModal(null, '${dateStr}')" class="absolute bottom-2 right-2 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-green-600 shadow-md">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
             }
             lucide.createIcons();
         }
 
-        function openEventFormModal(eventId = null, prefillDate = null) {
-            populateCalFilters();
-            const form = document.getElementById('eventForm');
-            if (eventId) {
-                const e = events.find(x => x.id === eventId);
-                if(!e) return;
-                document.getElementById('formEventTitle').textContent = "Editar Evento";
-                document.getElementById('formEventId').value = e.id;
-                document.getElementById('formEventDept').value = e.department;
-                updateEventDirector();
-                document.getElementById('formEventName').value = e.name;
-                document.getElementById('formEventDate').value = toInputDate(e.date);
-                document.getElementById('formEventStartTime').value = e.startTime;
-                document.getElementById('formEventEndTime').value = e.endTime;
-                document.getElementById('formEventLocation').value = e.location;
-                document.getElementById('formEventDesc').value = e.description;
-            } else {
-                form.reset();
-                document.getElementById('formEventTitle').textContent = "Nuevo Evento";
-                document.getElementById('formEventId').value = "";
-                document.getElementById('formEventDirector').value = "";
-                if(prefillDate) {
-                    document.getElementById('formEventDate').value = prefillDate;
-                } else {
-                    document.getElementById('formEventDate').valueAsDate = new Date();
-                }
-            }
-            document.getElementById('formEventModal').classList.remove('hidden');
+        function updateEventDirector() {
+            const dept = document.getElementById('calDept').value;
+            document.getElementById('calDirector').value = DEPARTAMENTOS[dept] || "";
         }
 
-        function closeEventFormModal() { document.getElementById('formEventModal').classList.add('hidden'); }
+        function openCalendarFormModal(id = null, defaultDate = null) {
+            document.getElementById('calendarForm').reset();
+            document.getElementById('calEventId').value = "";
+            document.getElementById('calFormTitle').textContent = "Programar Nuevo Evento";
+            if(defaultDate) document.getElementById('calDate').value = defaultDate;
+            else document.getElementById('calDate').valueAsDate = new Date();
+            
+            if (id) {
+                const ev = calendarEvents.find(x => x.id === id);
+                if (ev) {
+                    document.getElementById('calFormTitle').textContent = "Editar Evento";
+                    document.getElementById('calEventId').value = ev.id;
+                    document.getElementById('calDept').value = ev.department;
+                    document.getElementById('calDirector').value = ev.director;
+                    document.getElementById('calDate').value = toInputDate(ev.date);
+                    document.getElementById('calTimeStart').value = ev.startTime;
+                    document.getElementById('calTimeEnd').value = ev.endTime;
+                    document.getElementById('calLocation').value = ev.location;
+                    document.getElementById('calTitle').value = ev.title;
+                    document.getElementById('calDesc').value = ev.description;
+                }
+            }
+            document.getElementById('calendarFormModal').classList.remove('hidden-view');
+        }
 
         async function saveEvent(e) {
             e.preventDefault();
-            const idVal = document.getElementById('formEventId').value;
-            const evData = {
-                department: document.getElementById('formEventDept').value,
-                director: document.getElementById('formEventDirector').value,
-                name: document.getElementById('formEventName').value,
-                date: document.getElementById('formEventDate').value,
-                startTime: document.getElementById('formEventStartTime').value,
-                endTime: document.getElementById('formEventEndTime').value,
-                location: document.getElementById('formEventLocation').value,
-                description: document.getElementById('formEventDesc').value
-            };
+            const idVal = document.getElementById('calEventId').value;
+            const date = document.getElementById('calDate').value;
+            const dept = document.getElementById('calDept').value;
+            const start = document.getElementById('calTimeStart').value;
+            const end = document.getElementById('calTimeEnd').value;
+            const title = document.getElementById('calTitle').value;
 
-            // Anti-conflict logic
-            const sTime = parseInt(evData.startTime.split(':')[0]);
-            const eTime = parseInt(evData.endTime.split(':')[0]);
-            
-            if (sTime >= eTime) {
-                showToast("La hora de inicio debe ser menor a la hora final.", "error");
-                return;
-            }
+            if (start >= end) { showToast("La hora de inicio debe ser anterior a la hora de fin.", "error"); return; }
 
-            const conflict = events.find(existing => {
-                if(existing.id == idVal) return false;
-                if(existing.department !== evData.department) return false; // Solo cruza misma area
-                if(existing.date !== evData.date) return false;
-                const exStart = parseInt((existing.startTime || "00:00").split(':')[0]);
-                const exEnd = parseInt((existing.endTime || "24:00").split(':')[0]);
-                
-                // Overlap condition
-                return (sTime < exEnd && eTime > exStart);
+            const conflict = calendarEvents.find(ev => {
+                if (idVal && ev.id == idVal) return false;
+                if (ev.department !== dept || toInputDate(ev.date) !== date) return false;
+                return (start < ev.endTime && end > ev.startTime);
             });
 
-            if(conflict) {
-                showToast(`Conflicto de horario con el evento: "${conflict.name}"`, "error");
-                return;
-            }
+            if (conflict) { showToast(`Cruce de horario en ${dept} con: ${conflict.title}`, "error"); return; }
 
-            if(idVal) {
-                const idx = events.findIndex(x => x.id == idVal);
-                if(idx !== -1) events[idx] = {...events[idx], ...evData};
+            const evData = {
+                date: date, department: dept, director: document.getElementById('calDirector').value,
+                startTime: start, endTime: end, location: document.getElementById('calLocation').value,
+                title: title, description: document.getElementById('calDesc').value
+            };
+
+            if (idVal) {
+                const idx = calendarEvents.findIndex(x => x.id == idVal);
+                if(idx > -1) Object.assign(calendarEvents[idx], evData);
             } else {
-                events.push({ id: Date.now(), ...evData });
+                calendarEvents.push({ id: Date.now(), ...evData });
             }
 
-            closeEventFormModal();
-            closeEventDetailModal();
+            closeModal('calendarFormModal');
+            if (idVal) closeModal('calendarDetailModal');
             await saveDataToAPI('calendario');
         }
 
-        function openEventDetail(id) {
-            const e = events.find(x => x.id === id);
-            if(!e) return;
-            
-            const bgClass = DEPT_COLORS[e.department] ? DEPT_COLORS[e.department].split(' ')[0] : 'bg-slate-600';
-            document.getElementById('eventDetailHeader').className = `px-6 py-4 flex items-center justify-between ${bgClass}`;
-            
-            document.getElementById('eventDetailTitle').textContent = e.name;
-            document.getElementById('eventDetailDept').textContent = e.department;
-            document.getElementById('eventDetailDirector').textContent = e.director;
-            document.getElementById('eventDetailDate').textContent = formatDate(e.date);
-            
-            const sTime = e.startTime || "";
-            const eTime = e.endTime || "";
-            let timeStr = "Horario por definir";
-            if (sTime && eTime) timeStr = `De ${sTime} a ${eTime}`;
-            else if (sTime) timeStr = `A partir de las ${sTime}`;
-            
-            document.getElementById('eventDetailTime').textContent = timeStr;
-            document.getElementById('eventDetailLocation').textContent = e.location || "Sin especificar";
-            document.getElementById('eventDetailDesc').textContent = e.description || "Sin descripción adicional.";
+        function openCalendarDetail(id) {
+            const ev = calendarEvents.find(x => x.id === id);
+            if (!ev) return;
 
-            document.getElementById('btnEditEvent').onclick = () => { closeEventDetailModal(); openEventFormModal(e.id); };
+            const cClass = DEPT_COLORS[ev.department] || DEPT_COLORS['DEFAULT'];
+            document.getElementById('calDetailHeader').className = `px-6 py-4 flex items-center justify-between z-20 ${cClass}`;
             
-            const btnDel = document.getElementById('btnDeleteEvent');
-            btnDel.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar`;
-            btnDel.className = "px-4 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2";
-            btnDel.onclick = async () => {
-                if (btnDel.textContent.includes("Confirmar")) {
-                    events = events.filter(x => x.id !== e.id);
-                    closeEventDetailModal(); await saveDataToAPI('calendario');
-                } else {
-                    btnDel.textContent = "¿Confirmar?";
-                    btnDel.className = "px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2";
+            document.getElementById('cdTitle').textContent = ev.title;
+            let timeTxt = (ev.startTime && ev.endTime) ? `${ev.startTime} a ${ev.endTime}` : "Horario por definir";
+            document.getElementById('cdDateTime').textContent = `${formatDate(ev.date)} - ${timeTxt}`;
+            document.getElementById('cdLocation').textContent = ev.location || "Por definir";
+            document.getElementById('cdDept').textContent = ev.department;
+            document.getElementById('cdDirector').textContent = ev.director;
+            document.getElementById('cdDesc').textContent = ev.description || "Sin descripción.";
+
+            document.getElementById('btnEditEvent').onclick = () => openCalendarFormModal(ev.id);
+            document.getElementById('btnDeleteEvent').onclick = async () => {
+                if(confirm("¿Eliminar este evento?")) {
+                    calendarEvents = calendarEvents.filter(x => x.id !== ev.id);
+                    closeModal('calendarDetailModal');
+                    await saveDataToAPI('calendario');
                 }
             };
-
-            document.getElementById('eventDetailModal').classList.remove('hidden');
-            lucide.createIcons();
+            document.getElementById('calendarDetailModal').classList.remove('hidden-view');
         }
 
-        function closeEventDetailModal() { document.getElementById('eventDetailModal').classList.add('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden-view'); }
 
-        
-        // --- PDF EXPORT ---
-        function executePDFGeneration() {
-            document.getElementById('pdfRangeModal').classList.add('hidden');
-            const startD = document.getElementById('pdfStartDate').value;
-            const endD = document.getElementById('pdfEndDate').value;
-            
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
-            
-            // Dibujar Logo desde Base64 (si existe)
-            let startY = 20;
-            if (LOGO_BASE64 && LOGO_BASE64.startsWith('data:image')) {
-                try {
-                    // X: 14, Y: 10, Width: 40, Height: 15 (ajusta proporciones según tu logo real)
-                    doc.addImage(LOGO_BASE64, 'PNG', 14, 10, 40, 15);
-                    startY = 35; // Empujar título hacia abajo
-                } catch(e) { console.error("Error drawing logo", e); }
-            }
+        function openPDFRangeModal(module) {
+            document.getElementById('pdfModuleType').value = module;
+            document.getElementById('pdfStartDate').value = ""; document.getElementById('pdfEndDate').value = "";
+            document.getElementById('pdfRangeModal').classList.remove('hidden-view');
+        }
 
-            doc.setFontSize(16);
-            doc.text(currentModule === 'junta' ? "Reporte - Junta Directiva" : "Reporte - Calendario Institucional", 14, startY);
-            
-            doc.setFontSize(10);
-            doc.setTextColor(100);
-            let periodText = "Periodo: Todos los registros";
-            if(startD && endD) periodText = `Periodo: ${formatDate(startD)} - ${formatDate(endD)}`;
-            else if (startD) periodText = `A partir de: ${formatDate(startD)}`;
-            else if (endD) periodText = `Hasta: ${formatDate(endD)}`;
-            doc.text(periodText, 14, startY + 6);
+        function confirmPDF() {
+            const module = document.getElementById('pdfModuleType').value;
+            const sd = document.getElementById('pdfStartDate').value;
+            const ed = document.getElementById('pdfEndDate').value;
+            if(!sd || !ed) { showToast("Por favor seleccione ambas fechas", "error"); return; }
+            closeModal('pdfRangeModal');
+            exportToPDF(module, sd, ed);
+        }
 
-            let bodyData = [];
-            let headers = [];
+        function exportToPDF(module, startDate, endDate) {
+            const printWindow = window.open('', '_blank');
+            const sDate = new Date(startDate); sDate.setUTCHours(0,0,0,0);
+            const eDate = new Date(endDate); eDate.setUTCHours(23,59,59,999);
+            const fechaGeneracion = new Date().toLocaleString('es-CO');
 
-            if (currentModule === 'junta') {
-                headers = [['Fecha', 'Tarea', 'Solicitante', 'Responsable', 'Estado']];
-                let fTasks = [...tasks];
-                if(startD) fTasks = fTasks.filter(t => t.date >= startD);
-                if(endD) fTasks = fTasks.filter(t => t.date <= endD);
-                bodyData = fTasks.map(t => [formatDate(t.date), t.task, t.requester, t.responsible, (t.status||"").toUpperCase()]);
+            let tableHeaders = '';
+            let tableRows = '';
+
+            if (module === 'calendario') {
+                let filtered = calendarEvents.filter(ev => {
+                    const d = new Date(toInputDate(ev.date)); d.setUTCHours(12,0,0,0);
+                    return d >= sDate && d <= eDate;
+                }).sort((a,b) => new Date(toInputDate(a.date)) - new Date(toInputDate(b.date)));
+
+                tableHeaders = '<tr><th>Fecha</th><th>Horario</th><th>Departamento</th><th>Lugar</th><th>Evento</th></tr>';
+                tableRows = filtered.map(ev => {
+                    return `<tr>
+                        <td style="white-space: nowrap;">${formatDate(ev.date)}</td>
+                        <td style="white-space: nowrap;">${ev.startTime||""} a ${ev.endTime||""}</td>
+                        <td><span class="dept-pill">${ev.department}</span></td>
+                        <td>${ev.location}</td>
+                        <td><strong>${ev.title}</strong></td>
+                    </tr>`;
+                }).join('');
             } else {
-                headers = [['Fecha', 'Horario', 'Evento', 'Departamento', 'Lugar']];
-                let fEvents = [...events];
-                if(startD) fEvents = fEvents.filter(t => t.date >= startD);
-                if(endD) fEvents = fEvents.filter(t => t.date <= endD);
-                // Sort chronologically
-                fEvents.sort((a,b) => new Date(a.date) - new Date(b.date));
-                bodyData = fEvents.map(e => [formatDate(e.date), `${e.startTime||""} - ${e.endTime||""}`, e.name, e.department, e.location]);
+                let filtered = tasks.filter(t => {
+                    const d = new Date(toInputDate(t.date)); d.setUTCHours(12,0,0,0);
+                    return d >= sDate && d <= eDate;
+                }).sort((a,b) => new Date(toInputDate(a.date)) - new Date(toInputDate(b.date)));
+
+                tableHeaders = '<tr><th style="width: 10%;">Fecha</th><th style="width: 55%;">Actividad / Tarea</th><th style="width: 10%;">Solicitante</th><th style="width: 10%;">Responsable</th><th style="width: 15%; text-align: center;">Estado</th></tr>';
+                tableRows = filtered.map(t => {
+                    let statusClass = 'pill-default';
+                    let statusText = (t.status || 'pendiente').toUpperCase();
+                    if (t.status === 'cumplida') statusClass = 'pill-cumplida';
+                    else if (t.status === 'en proceso') statusClass = 'pill-proceso';
+                    else if (t.status === 'pendiente') statusClass = 'pill-pendiente';
+
+                    const reqHtml = (t.requester||"").split('-').map(r => r.trim() ? `<div>${r}</div>` : '').join('');
+                    const respHtml = (t.responsible||"").split('-').map(r => r.trim() ? `<div>${r}</div>` : '').join('');
+
+                    return `<tr>
+                        <td style="white-space: nowrap;">${formatDate(t.date)}</td>
+                        <td>${t.task}</td>
+                        <td>${reqHtml}</td>
+                        <td>${respHtml}</td>
+                        <td style="text-align: center;"><span class="pill ${statusClass}">${statusText}</span></td>
+                    </tr>`;
+                }).join('');
             }
 
-            doc.autoTable({
-                startY: startY + 12,
-                head: headers,
-                body: bodyData,
-                styles: { fontSize: 8, cellPadding: 3 },
-                headStyles: { fillColor: [30, 41, 59] } // slate-800
-            });
-            
-            doc.save(`reporte_${currentModule}_${new Date().toISOString().slice(0,10)}.pdf`);
+            const title = module === 'calendario' ? 'Calendario de Eventos y Actividades' : 'Seguimiento Junta Directiva';
+
+            const htmlStr = `
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <title>Reporte - ${title}</title>
+                <style>
+                    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #334155; }
+                    .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
+                    .header img { height: 70px; object-fit: contain; }
+                    .header-text { text-align: right; }
+                    .header-text h1 { color: #0f172a; margin: 0; font-size: 20px; text-transform: uppercase; }
+                    .header-text p { margin: 5px 0 0 0; color: #64748b; font-size: 12px; }
+                    .filters { background-color: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 30px; font-size: 12px; color: #475569; border: 1px solid #e2e8f0; }
+                    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+                    th { background-color: #f1f5f9; color: #334155; text-align: left; padding: 12px; border-bottom: 2px solid #cbd5e1; text-transform: uppercase; font-weight: bold; }
+                    td { padding: 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+                    .pill { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 9px; font-weight: bold; letter-spacing: 0.5px; }
+                    .pill-cumplida { background-color: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+                    .pill-proceso { background-color: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+                    .pill-pendiente { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+                    .pill-default { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+                    .dept-pill { display: inline-block; padding: 4px 8px; border-radius: 4px; background-color: #f1f5f9; border: 1px solid #e2e8f0; font-weight: bold; }
+                    .footer { margin-top: 50px; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+                </style>
+            </head>
+            <body onload="setTimeout(() => { window.print(); window.close(); }, 800)">
+                <div class="header">
+                    <img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo Cámara de Comercio">
+                    <div class="header-text">
+                        <h1>${title}</h1>
+                        <p>Reporte Oficial de Gestión</p>
+                    </div>
+                </div>
+                
+                <div class="filters">
+                    <strong>Periodo Reportado:</strong> Desde el ${formatDate(startDate)} hasta el ${formatDate(endDate)}<br>
+                    <strong>Fecha de Generación:</strong> ${fechaGeneracion}
+                </div>
+
+                <table>
+                    <thead>${tableHeaders}</thead>
+                    <tbody>${tableRows.length > 0 ? tableRows : '<tr><td colspan="5" style="text-align:center; padding: 20px;">No se encontraron registros en este periodo.</td></tr>'}</tbody>
+                </table>
+
+                <div class="footer">
+                    Generado de forma automatizada por el Portal de Gestión Institucional - Cámara de Comercio de Ipiales
+                </div>
+            </body>
+            </html>
+            `;
+
+            printWindow.document.write(htmlStr);
+            printWindow.document.close();
         }
 
-// Convierte la imagen del logo a Base64 al cargar la app
-async function preloadLogo() {
-    const IMG_URL = "https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png";
-    try {
-        const response = await fetch(IMG_URL);
-        const blob = await response.blob();
-        return await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(blob);
-        });
-    } catch (e) {
-        console.warn("No se pudo precargar el logo:", e);
-        return null;
-    }
-}
-        // Init
         window.onload = () => {
-            showLanding();
+            document.getElementById('taskSearchInput').addEventListener('input', renderTasks);
+            document.getElementById('responsibleFilter').addEventListener('change', renderTasks);
+            document.getElementById('statusFilter').addEventListener('change', renderTasks);
             lucide.createIcons();
         };
     </script>
