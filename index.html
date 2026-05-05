@@ -16,7 +16,7 @@
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
         .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
         .full-overlay { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px); }
-        select { appearance: none; }
+        select, input[type="time"] { appearance: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -328,7 +328,7 @@
                         <textarea name="task" id="formTask" required rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Descripción detallada de la tarea..."></textarea>
                     </div>
 
-                    <!-- Bloque Solicitante(s) (Pills + Datalist) -->
+                    <!-- Bloque Solicitante(s) -->
                     <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
                         <label class="text-xs font-bold text-indigo-600 uppercase block mb-2">Solicitante(s)</label>
                         <div class="flex gap-2 mb-2">
@@ -340,7 +340,7 @@
                         <input type="hidden" name="requester" id="formHiddenRequester" required>
                     </div>
 
-                    <!-- Bloque Responsable(s) (Pills + Datalist) -->
+                    <!-- Bloque Responsable(s) -->
                     <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                         <label class="text-xs font-bold text-blue-600 uppercase block mb-2">Responsable(s) / Apoyos</label>
                         <div class="flex gap-2 mb-2">
@@ -393,7 +393,6 @@
             <div class="p-8 overflow-y-auto flex-grow">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div class="space-y-6">
-                        <!-- Información Principal -->
                         <div>
                             <label class="text-[10px] font-bold uppercase text-blue-600 mb-1 block">Tarea / Actividad</label>
                             <p id="modalDesc" class="text-slate-700 font-medium text-lg leading-snug"></p>
@@ -419,7 +418,6 @@
                             </div>
                         </div>
 
-                        <!-- Estado Actual y Detalles -->
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                             <div class="flex items-center justify-between mb-2">
                                 <label class="text-[10px] font-bold uppercase text-slate-500 block">Estado Actual</label>
@@ -501,7 +499,7 @@
                 <div class="p-6 space-y-4">
                     <div>
                         <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Destinatario(s)</label>
-                        <input type="text" id="emailTo" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="correo@ejemplo.com, otro@ejemplo.com">
+                        <input type="text" id="emailTo" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="correo@ejemplo.com">
                         <p class="text-[10px] text-slate-400 mt-1">Separe múltiples correos con comas.</p>
                     </div>
                     <div>
@@ -549,11 +547,11 @@
                         </div>
                         <div class="col-span-1">
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Hora Inicio</label>
-                            <select id="calTimeStart" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer"></select>
+                            <input type="time" id="calTimeStart" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer">
                         </div>
                         <div class="col-span-1">
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Hora Fin</label>
-                            <select id="calTimeEnd" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer"></select>
+                            <input type="time" id="calTimeEnd" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer">
                         </div>
                     </div>
                     <div>
@@ -582,8 +580,8 @@
         <div class="modal-overlay absolute inset-0" onclick="closeModal('calendarDetailModal')"></div>
         <div class="bg-white rounded-2xl w-full max-w-md relative z-10 shadow-2xl overflow-hidden flex flex-col">
             <div id="calDetailHeader" class="px-6 py-4 flex items-center justify-between z-20 text-white">
-                <h2 class="text-lg font-bold truncate pr-4" id="cdTitle">Evento</h2>
-                <button onclick="closeModal('calendarDetailModal')" class="p-1 hover:bg-black/10 rounded-full"><i data-lucide="x"></i></button>
+                <h2 class="text-lg font-bold pr-4 leading-tight break-words" id="cdTitle">Evento</h2>
+                <button onclick="closeModal('calendarDetailModal')" class="p-1 hover:bg-black/10 rounded-full flex-shrink-0"><i data-lucide="x"></i></button>
             </div>
             <div class="p-6 space-y-4">
                 <div class="flex items-start gap-3">
@@ -752,6 +750,45 @@
             return "";
         }
 
+        // Helper inteligente para ignorar mayúsculas y espacios ocultos en los encabezados de Google Sheets
+        function getVal(obj, keys) {
+            for (let k of keys) {
+                const foundKey = Object.keys(obj).find(key => key.trim().toLowerCase() === k.toLowerCase());
+                if (foundKey && obj[foundKey] !== undefined && obj[foundKey] !== null && obj[foundKey] !== "") {
+                    return obj[foundKey];
+                }
+            }
+            return "";
+        }
+
+        // Helper 100% robusto para la extracción de hora de Google Sheets
+        function extractTime(t) {
+            if(!t || t === "") return "";
+            let str = String(t).trim();
+            
+            // Formato ISO de Google Sheets: "1899-12-30T14:00:00.000Z"
+            if(str.includes('T')) {
+                const d = new Date(str);
+                if(!isNaN(d)) {
+                    return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+                }
+            }
+            
+            // Si por algún motivo llega el formato decimal numérico de Excel (ej. 0.58333 para las 14:00)
+            if(!isNaN(str) && Number(str) > 0 && Number(str) < 1) {
+                const totalMinutes = Math.round(Number(str) * 24 * 60);
+                const h = Math.floor(totalMinutes / 60);
+                const m = totalMinutes % 60;
+                return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
+            }
+
+            // Si es texto normal "14:00" o "14:00:00"
+            const match = str.match(/(\d{1,2}):(\d{2})/);
+            if(match) return match[1].padStart(2, '0') + ':' + match[2];
+            
+            return str;
+        }
+
         // ==========================================
         // CONEXIÓN AUTOMÁTICA API (Google Sheets)
         // ==========================================
@@ -764,30 +801,30 @@
                 
                 if (module === 'junta') {
                     tasks = data.map(t => ({
-                        id: parseInt(t.id || t.ID) || Date.now() + Math.random(),
-                        date: t.date || t.Fecha || t.fecha || "",
-                        task: t.task || t.Tarea || t['Actividad / Tarea'] || t.tarea || "",
-                        requester: t.requester || t.Solicitante || t.solicitante || "",
-                        responsible: t.responsible || t.Responsable || t.responsable || "",
-                        monitoring: t.monitoring || t.Monitoreo || t.monitoreo || "",
-                        status: t.status || t.Estado || t.estado || "pendiente",
-                        detail: t.detail || t.Detalles || t.Historial || t.Detalle || "",
-                        fb_link: t.fb_link || t.Facebook || t['Enlace Redes'] || "",
-                        image_url: t.image_url || t.Drive || t['Enlace Evidencia Drive'] || ""
+                        id: t.id || getVal(t, ['id']) || `T-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+                        date: t.date || getVal(t, ['fecha']),
+                        task: t.task || getVal(t, ['tarea', 'actividad / tarea']),
+                        requester: t.requester || getVal(t, ['solicitante']),
+                        responsible: t.responsible || getVal(t, ['responsable']),
+                        monitoring: t.monitoring || getVal(t, ['monitoreo']),
+                        status: t.status || getVal(t, ['estado']) || "pendiente",
+                        detail: t.detail || getVal(t, ['detalles', 'historial', 'detalle']),
+                        fb_link: t.fb_link || getVal(t, ['facebook', 'enlace redes']),
+                        image_url: t.image_url || getVal(t, ['drive', 'enlace evidencia drive'])
                     }));
                     renderTasks();
                     populateJuntaFilters();
                 } else {
                     calendarEvents = data.map(t => ({
-                        id: parseInt(t.id || t.ID) || Date.now() + Math.random(),
-                        date: t.date || t.Fecha || t.fecha || "",
-                        startTime: t.startTime || t['Hora Inicio'] || t.Hora || "",
-                        endTime: t.endTime || t['Hora Fin'] || "",
-                        department: t.department || t.Departamento || t.departamento || "",
-                        director: t.director || t.Director || t.director || "",
-                        location: t.location || t.Lugar || t.lugar || "",
-                        title: t.title || t.Evento || t.evento || "",
-                        description: t.description || t.Descripcion || t.descripcion || ""
+                        id: t.id || getVal(t, ['id']) || `E-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+                        date: t.date || getVal(t, ['fecha']),
+                        startTime: extractTime(t.startTime || getVal(t, ['hora inicio', 'hora', 'hora_inicio', 'horainicio', 'inicio', 'desde'])),
+                        endTime: extractTime(t.endTime || getVal(t, ['hora fin', 'hora_fin', 'horafin', 'fin', 'hasta'])),
+                        department: t.department || getVal(t, ['departamento', 'area']),
+                        director: t.director || getVal(t, ['director']),
+                        location: t.location || getVal(t, ['lugar', 'ubicacion']),
+                        title: t.title || getVal(t, ['evento', 'titulo']),
+                        description: t.description || getVal(t, ['descripcion', 'detalle'])
                     }));
                     populateCalFilters();
                     renderCalendar();
@@ -814,9 +851,29 @@
                     }));
                 } else {
                     payload = calendarEvents.map(t => ({
-                        "ID": t.id, "Fecha": t.date, "Hora Inicio": t.startTime, "Hora Fin": t.endTime,
-                        "Departamento": t.department, "Director": t.director, "Lugar": t.location,
-                        "Evento": t.title, "Descripcion": t.description,
+                        // Enviamos múltiples variantes para evadir diferencias en nombres de columnas de Google Sheets
+                        "ID": t.id, 
+                        "Fecha": t.date, 
+                        "Hora Inicio": t.startTime, 
+                        "Hora": t.startTime,
+                        "Hora_Inicio": t.startTime,
+                        "Hora_inicio": t.startTime,
+                        "Inicio": t.startTime,
+                        "Desde": t.startTime,
+                        "Hora Fin": t.endTime,
+                        "Hora_Fin": t.endTime,
+                        "Hora_fin": t.endTime,
+                        "Fin": t.endTime,
+                        "Hasta": t.endTime,
+                        "Departamento": t.department, 
+                        "Area": t.department,
+                        "Director": t.director, 
+                        "Lugar": t.location,
+                        "Ubicacion": t.location,
+                        "Evento": t.title, 
+                        "Titulo": t.title,
+                        "Descripcion": t.description,
+                        "Detalle": t.description,
                         "date": t.date, "startTime": t.startTime, "endTime": t.endTime, "department": t.department,
                         "director": t.director, "location": t.location, "title": t.title, "description": t.description
                     }));
@@ -829,7 +886,7 @@
                 });
                 
                 showToast("Datos guardados correctamente", "success");
-                await fetchDataFromAPI(module, true); // Confirma recargando silenciosamente
+                await fetchDataFromAPI(module, true);
             } catch (error) {
                 console.error("Save error:", error);
                 showToast("Error al guardar en la nube", "error");
@@ -893,7 +950,7 @@
                     <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start">${respHTML}</div></td>
                     <td class="px-4 py-3 sm:px-6 sm:py-4 align-top text-center"><span class="px-2 py-1 inline-flex rounded-full text-[10px] font-bold border uppercase tracking-wider ${sClass}">${t.status || "Pendiente"}</span></td>
                     <td class="px-4 py-3 sm:px-6 sm:py-4 text-right align-top">
-                        <button onclick="openJuntaModal(${t.id})" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Ver Detalles"><i data-lucide="info" class="w-5 h-5"></i></button>
+                        <button onclick="openJuntaModal('${t.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Ver Detalles"><i data-lucide="info" class="w-5 h-5"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1119,7 +1176,7 @@
             const emails = [];
             const DIRECTORIO = {
                 "Iván Javier Flórez": "directorejecutivo@ccipiales.org.co",
-                "Iván Javier Flórez Portilla": "directorejecutivo@ccipiales.org.co", // Fallback por si se guarda con 2 apellidos
+                "Iván Javier Flórez Portilla": "directorejecutivo@ccipiales.org.co",
                 "Alexandra Flórez Ortega": "registropublico@ccipiales.org.co",
                 "Jhon Jairo Suárez": "coorproyectos@ccipiales.org.co",
                 "Jesús Andrés Pérez": "capacitacion@ccipiales.org.co",
@@ -1196,13 +1253,6 @@
             const formDept = document.getElementById('calDept');
             formDept.innerHTML = '<option value="" disabled selected>Seleccione el departamento...</option>';
             Object.keys(DEPARTAMENTOS).forEach(d => formDept.add(new Option(d, d)));
-
-            const ts = document.getElementById('calTimeStart'); const te = document.getElementById('calTimeEnd');
-            ts.innerHTML=''; te.innerHTML='';
-            for(let i=0; i<24; i++) {
-                const h = i.toString().padStart(2, '0') + ':00';
-                ts.add(new Option(h,h)); te.add(new Option(h,h));
-            }
             
             document.getElementById('calDeptFilter').addEventListener('change', renderCalendar);
         }
@@ -1283,11 +1333,20 @@
                 if (ev) {
                     document.getElementById('calFormTitle').textContent = "Editar Evento";
                     document.getElementById('calEventId').value = ev.id;
-                    document.getElementById('calDept').value = ev.department;
+                    
+                    const deptSelect = document.getElementById('calDept');
+                    const safeDeptValue = (ev.department || '').trim().toLowerCase();
+                    const matchedOption = Array.from(deptSelect.options).find(opt => opt.value.trim().toLowerCase() === safeDeptValue);
+                    if (matchedOption) {
+                        deptSelect.value = matchedOption.value;
+                    }
+                    
                     document.getElementById('calDirector').value = ev.director;
                     document.getElementById('calDate').value = toInputDate(ev.date);
-                    document.getElementById('calTimeStart').value = ev.startTime;
-                    document.getElementById('calTimeEnd').value = ev.endTime;
+                    
+                    document.getElementById('calTimeStart').value = extractTime(ev.startTime);
+                    document.getElementById('calTimeEnd').value = extractTime(ev.endTime);
+
                     document.getElementById('calLocation').value = ev.location;
                     document.getElementById('calTitle').value = ev.title;
                     document.getElementById('calDesc').value = ev.description;
@@ -1341,14 +1400,29 @@
             document.getElementById('calDetailHeader').className = `px-6 py-4 flex items-center justify-between z-20 ${cClass}`;
             
             document.getElementById('cdTitle').textContent = ev.title;
-            let timeTxt = (ev.startTime && ev.endTime) ? `${ev.startTime} a ${ev.endTime}` : "Horario por definir";
+            
+            // Si validamos que existan, mostramos el horario (ahora es más permisivo si solo hay hora de inicio)
+            let timeTxt = "Horario por definir";
+            if (ev.startTime && ev.endTime) {
+                timeTxt = `${ev.startTime} a ${ev.endTime}`;
+            } else if (ev.startTime) {
+                timeTxt = `Desde las ${ev.startTime}`;
+            } else if (ev.endTime) {
+                timeTxt = `Hasta las ${ev.endTime}`;
+            }
+            
             document.getElementById('cdDateTime').textContent = `${formatDate(ev.date)} - ${timeTxt}`;
+            
             document.getElementById('cdLocation').textContent = ev.location || "Por definir";
             document.getElementById('cdDept').textContent = ev.department;
             document.getElementById('cdDirector').textContent = ev.director;
             document.getElementById('cdDesc').textContent = ev.description || "Sin descripción.";
 
-            document.getElementById('btnEditEvent').onclick = () => openCalendarFormModal(ev.id);
+            document.getElementById('btnEditEvent').onclick = () => { 
+                closeModal('calendarDetailModal'); 
+                openCalendarFormModal(ev.id); 
+            };
+
             document.getElementById('btnDeleteEvent').onclick = async () => {
                 if(confirm("¿Eliminar este evento?")) {
                     calendarEvents = calendarEvents.filter(x => String(x.id) !== String(ev.id));
