@@ -540,18 +540,19 @@
                         <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Director Responsable</label>
                         <input type="text" id="calDirector" readonly class="w-full px-4 py-2 bg-slate-50 border border-slate-200 text-slate-500 rounded-lg text-sm cursor-not-allowed">
                     </div>
-                    <div class="grid grid-cols-3 gap-3">
+                    <div class="grid grid-cols-2 gap-3">
                         <div class="col-span-1">
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha</label>
                             <input type="date" id="calDate" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500">
                         </div>
                         <div class="col-span-1">
-                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Hora Inicio</label>
-                            <input type="time" id="calTimeStart" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer">
-                        </div>
-                        <div class="col-span-1">
-                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Hora Fin</label>
-                            <input type="time" id="calTimeEnd" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer">
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Jornada</label>
+                            <select id="calPeriod" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer">
+                                <option value="" disabled selected>Seleccione la jornada...</option>
+                                <option value="Todo el día">Todo el día</option>
+                                <option value="Mañana">Mañana</option>
+                                <option value="Tarde">Tarde</option>
+                            </select>
                         </div>
                     </div>
                     <div>
@@ -626,7 +627,7 @@
         // ==========================================
         // CONFIGURACIÓN CONSTANTE (Google Sheets)
         // ==========================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbxOE-XR4rr5C89BtEBhfb1kXc6Nr2fPj-8Y07p1eOwQnUA449g19k1efqumuq0Wu8Bj/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbzCDNALNrENoHPheorxhpnrl5-5MqLYJ9jARuimygmGsGX9zhTa__6qNamfO9Djlcjk/exec";
 
         // ==========================================
         // VARIABLES GLOBALES Y DICCIONARIOS
@@ -761,34 +762,6 @@
             return "";
         }
 
-        // Helper 100% robusto para la extracción de hora de Google Sheets
-        function extractTime(t) {
-            if(!t || t === "") return "";
-            let str = String(t).trim();
-            
-            // Formato ISO de Google Sheets: "1899-12-30T14:00:00.000Z"
-            if(str.includes('T')) {
-                const d = new Date(str);
-                if(!isNaN(d)) {
-                    return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-                }
-            }
-            
-            // Si por algún motivo llega el formato decimal numérico de Excel (ej. 0.58333 para las 14:00)
-            if(!isNaN(str) && Number(str) > 0 && Number(str) < 1) {
-                const totalMinutes = Math.round(Number(str) * 24 * 60);
-                const h = Math.floor(totalMinutes / 60);
-                const m = totalMinutes % 60;
-                return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
-            }
-
-            // Si es texto normal "14:00" o "14:00:00"
-            const match = str.match(/(\d{1,2}):(\d{2})/);
-            if(match) return match[1].padStart(2, '0') + ':' + match[2];
-            
-            return str;
-        }
-
         // ==========================================
         // CONEXIÓN AUTOMÁTICA API (Google Sheets)
         // ==========================================
@@ -802,7 +775,7 @@
                 if (module === 'junta') {
                     tasks = data.map(t => ({
                         id: t.id || getVal(t, ['id']) || `T-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-                        date: t.date || getVal(t, ['fecha']),
+                        date: toInputDate(t.date || getVal(t, ['fecha'])),
                         task: t.task || getVal(t, ['tarea', 'actividad / tarea']),
                         requester: t.requester || getVal(t, ['solicitante']),
                         responsible: t.responsible || getVal(t, ['responsable']),
@@ -817,9 +790,8 @@
                 } else {
                     calendarEvents = data.map(t => ({
                         id: t.id || getVal(t, ['id']) || `E-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-                        date: t.date || getVal(t, ['fecha']),
-                        startTime: extractTime(t.startTime || getVal(t, ['hora inicio', 'hora', 'hora_inicio', 'horainicio', 'inicio', 'desde'])),
-                        endTime: extractTime(t.endTime || getVal(t, ['hora fin', 'hora_fin', 'horafin', 'fin', 'hasta'])),
+                        date: toInputDate(t.date || getVal(t, ['fecha'])),
+                        period: t.period || getVal(t, ['jornada', 'horario', 'hora inicio', 'hora']),
                         department: t.department || getVal(t, ['departamento', 'area']),
                         director: t.director || getVal(t, ['director']),
                         location: t.location || getVal(t, ['lugar', 'ubicacion']),
@@ -854,17 +826,18 @@
                         // Enviamos múltiples variantes para evadir diferencias en nombres de columnas de Google Sheets
                         "ID": t.id, 
                         "Fecha": t.date, 
-                        "Hora Inicio": t.startTime, 
-                        "Hora": t.startTime,
-                        "Hora_Inicio": t.startTime,
-                        "Hora_inicio": t.startTime,
-                        "Inicio": t.startTime,
-                        "Desde": t.startTime,
-                        "Hora Fin": t.endTime,
-                        "Hora_Fin": t.endTime,
-                        "Hora_fin": t.endTime,
-                        "Fin": t.endTime,
-                        "Hasta": t.endTime,
+                        "Jornada": t.period,
+                        "Hora Inicio": t.period, 
+                        "Hora": t.period,
+                        "Hora_Inicio": t.period,
+                        "Hora_inicio": t.period,
+                        "Inicio": t.period,
+                        "Desde": t.period,
+                        "Hora Fin": "",
+                        "Hora_Fin": "",
+                        "Hora_fin": "",
+                        "Fin": "",
+                        "Hasta": "",
                         "Departamento": t.department, 
                         "Area": t.department,
                         "Director": t.director, 
@@ -874,7 +847,7 @@
                         "Titulo": t.title,
                         "Descripcion": t.description,
                         "Detalle": t.description,
-                        "date": t.date, "startTime": t.startTime, "endTime": t.endTime, "department": t.department,
+                        "date": t.date, "period": t.period, "department": t.department,
                         "director": t.director, "location": t.location, "title": t.title, "description": t.description
                     }));
                 }
@@ -1293,7 +1266,15 @@
                     return eDate === dateStr && (filterDept === 'all' || e.department === filterDept);
                 });
                 
-                dayEvents.sort((a,b) => (a.startTime||"").localeCompare(b.startTime||""));
+                const getPeriodWeight = (p) => {
+                    const val = (p || "").toLowerCase();
+                    if (val.includes("todo")) return 1;
+                    if (val.includes("mañana")) return 2;
+                    if (val.includes("tarde")) return 3;
+                    return 4; // Por si hay datos antiguos
+                };
+                
+                dayEvents.sort((a,b) => getPeriodWeight(a.period) - getPeriodWeight(b.period));
                 
                 dayEvents.forEach(ev => {
                     const cClass = DEPT_COLORS[ev.department] || DEPT_COLORS['DEFAULT'];
@@ -1339,13 +1320,23 @@
                     const matchedOption = Array.from(deptSelect.options).find(opt => opt.value.trim().toLowerCase() === safeDeptValue);
                     if (matchedOption) {
                         deptSelect.value = matchedOption.value;
+                    } else if (ev.department) {
+                        // Evita que se limpie si el departamento fue editado manualmente en el Sheet con otro nombre/error
+                        deptSelect.add(new Option(ev.department, ev.department));
+                        deptSelect.value = ev.department;
                     }
                     
                     document.getElementById('calDirector').value = ev.director;
                     document.getElementById('calDate').value = toInputDate(ev.date);
                     
-                    document.getElementById('calTimeStart').value = extractTime(ev.startTime);
-                    document.getElementById('calTimeEnd').value = extractTime(ev.endTime);
+                    const periodSelect = document.getElementById('calPeriod');
+                    const safePeriodValue = (ev.period || '').trim().toLowerCase();
+                    let matchedPeriod = Array.from(periodSelect.options).find(opt => opt.value.toLowerCase() === safePeriodValue);
+                    if (matchedPeriod) {
+                        periodSelect.value = matchedPeriod.value;
+                    } else {
+                        periodSelect.value = "Todo el día";
+                    }
 
                     document.getElementById('calLocation').value = ev.location;
                     document.getElementById('calTitle').value = ev.title;
@@ -1360,23 +1351,21 @@
             const idVal = document.getElementById('calEventId').value;
             const date = document.getElementById('calDate').value;
             const dept = document.getElementById('calDept').value;
-            const start = document.getElementById('calTimeStart').value;
-            const end = document.getElementById('calTimeEnd').value;
+            const period = document.getElementById('calPeriod').value;
             const title = document.getElementById('calTitle').value;
-
-            if (start >= end) { showToast("La hora de inicio debe ser anterior a la hora de fin.", "error"); return; }
 
             const conflict = calendarEvents.find(ev => {
                 if (idVal && String(ev.id) === String(idVal)) return false;
                 if (ev.department !== dept || toInputDate(ev.date) !== date) return false;
-                return (start < ev.endTime && end > ev.startTime);
+                // Conflictos por jornada: si coinciden, o si uno de los dos es "Todo el día"
+                return (ev.period === period || ev.period === 'Todo el día' || period === 'Todo el día');
             });
 
-            if (conflict) { showToast(`Cruce de horario en ${dept} con: ${conflict.title}`, "error"); return; }
+            if (conflict) { showToast(`Cruce de jornada en ${dept} con: ${conflict.title}`, "error"); return; }
 
             const evData = {
                 date: date, department: dept, director: document.getElementById('calDirector').value,
-                startTime: start, endTime: end, location: document.getElementById('calLocation').value,
+                period: period, location: document.getElementById('calLocation').value,
                 title: title, description: document.getElementById('calDesc').value
             };
 
@@ -1401,17 +1390,7 @@
             
             document.getElementById('cdTitle').textContent = ev.title;
             
-            // Si validamos que existan, mostramos el horario (ahora es más permisivo si solo hay hora de inicio)
-            let timeTxt = "Horario por definir";
-            if (ev.startTime && ev.endTime) {
-                timeTxt = `${ev.startTime} a ${ev.endTime}`;
-            } else if (ev.startTime) {
-                timeTxt = `Desde las ${ev.startTime}`;
-            } else if (ev.endTime) {
-                timeTxt = `Hasta las ${ev.endTime}`;
-            }
-            
-            document.getElementById('cdDateTime').textContent = `${formatDate(ev.date)} - ${timeTxt}`;
+            document.getElementById('cdDateTime').textContent = `${formatDate(ev.date)} - Jornada: ${ev.period || "No definida"}`;
             
             document.getElementById('cdLocation').textContent = ev.location || "Por definir";
             document.getElementById('cdDept').textContent = ev.department;
@@ -1460,18 +1439,35 @@
             let tableHeaders = '';
             let tableRows = '';
 
+            // Diccionario para convertir colores Tailwind a colores nativos de impresión
+            const getPdfDeptStyle = (dept) => {
+                const styles = {
+                    "PRESIDENCIA EJECUTIVA": "background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe;",
+                    "DIRECCIÓN JURÍDICA Y DE REGISTRO PÚBLICO": "background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;",
+                    "DIRECCIÓN ADMINISTRATIVA Y DE TALENTO HUMANO": "background-color: #fae8ff; color: #86198f; border: 1px solid #f5d0fe;",
+                    "DIRECCIÓN DE COMPETITIVIDAD REGIONAL Y PROYECTOS": "background-color: #ffedd5; color: #9a3412; border: 1px solid #fed7aa;",
+                    "DIRECCIÓN DE CAPACITACIÓN EMPRESARIAL": "background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0;",
+                    "DIRECCIÓN DE CONCILIACIÓN Y ARBITRAJE": "background-color: #ffe4e6; color: #9f1239; border: 1px solid #fecdd3;",
+                    "DIRECCIÓN DE ESTUDIOS ECONÓMICOS Y ALIANZAS ESTRATÉGICAS": "background-color: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff;",
+                    "DIRECCIÓN FINANCIERA Y CONTABLE": "background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;",
+                    "OFICINA DE CONTROL INTERNO Y CALIDAD": "background-color: #e0f2fe; color: #075985; border: 1px solid #bae6fd;"
+                };
+                return styles[dept] || "background-color: #f1f5f9; color: #334155; border: 1px solid #e2e8f0;";
+            };
+
             if (module === 'calendario') {
                 let filtered = calendarEvents.filter(ev => {
                     const d = new Date(toInputDate(ev.date)); d.setUTCHours(12,0,0,0);
                     return d >= sDate && d <= eDate;
                 }).sort((a,b) => new Date(toInputDate(a.date)) - new Date(toInputDate(b.date)));
 
-                tableHeaders = '<tr><th>Fecha</th><th>Horario</th><th>Departamento</th><th>Lugar</th><th>Evento</th></tr>';
+                tableHeaders = '<tr><th>Fecha</th><th>Jornada</th><th>Departamento</th><th>Lugar</th><th>Evento</th></tr>';
                 tableRows = filtered.map(ev => {
+                    const inlineStyle = getPdfDeptStyle(ev.department);
                     return `<tr>
                         <td style="white-space: nowrap;">${formatDate(ev.date)}</td>
-                        <td style="white-space: nowrap;">${ev.startTime||""} a ${ev.endTime||""}</td>
-                        <td><span class="dept-pill">${ev.department}</span></td>
+                        <td style="white-space: nowrap; text-transform: capitalize;">${ev.period||"No definida"}</td>
+                        <td><span class="dept-pill" style="${inlineStyle}">${ev.department}</span></td>
                         <td>${ev.location}</td>
                         <td><strong>${ev.title}</strong></td>
                     </tr>`;
