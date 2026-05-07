@@ -772,34 +772,74 @@
                 const res = await fetch(url);
                 const data = await res.json();
                 
+                let needsAutoFix = false;
+                
                 if (module === 'junta') {
-                    tasks = data.map(t => ({
-                        id: t.id || getVal(t, ['id']) || `T-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-                        date: toInputDate(t.date || getVal(t, ['fecha'])),
-                        task: t.task || getVal(t, ['tarea', 'actividad / tarea']),
-                        requester: t.requester || getVal(t, ['solicitante']),
-                        responsible: t.responsible || getVal(t, ['responsable']),
-                        monitoring: t.monitoring || getVal(t, ['monitoreo']),
-                        status: t.status || getVal(t, ['estado']) || "pendiente",
-                        detail: t.detail || getVal(t, ['detalles', 'historial', 'detalle']),
-                        fb_link: t.fb_link || getVal(t, ['facebook', 'enlace redes']),
-                        image_url: t.image_url || getVal(t, ['drive', 'enlace evidencia drive'])
-                    }));
+                    const seenIds = new Set();
+                    tasks = data.map((t, index) => {
+                        let rowId = String(t.id || getVal(t, ['id']) || "");
+                        // Garantiza ID único si está vacío, es undefined, o viene duplicado del Sheet
+                        if (!rowId || rowId === "undefined" || seenIds.has(rowId)) {
+                            rowId = `T-${Date.now()}-${index}-${Math.floor(Math.random()*1000)}`;
+                            needsAutoFix = true;
+                        }
+                        seenIds.add(rowId);
+                        
+                        return {
+                            id: rowId,
+                            date: toInputDate(t.date || getVal(t, ['fecha'])),
+                            task: t.task || getVal(t, ['tarea', 'actividad / tarea']),
+                            requester: t.requester || getVal(t, ['solicitante']),
+                            responsible: t.responsible || getVal(t, ['responsable']),
+                            monitoring: t.monitoring || getVal(t, ['monitoreo']),
+                            status: t.status || getVal(t, ['estado']) || "pendiente",
+                            detail: t.detail || getVal(t, ['detalles', 'historial', 'detalle']),
+                            fb_link: t.fb_link || getVal(t, ['facebook', 'enlace redes']),
+                            image_url: t.image_url || getVal(t, ['drive', 'enlace evidencia drive'])
+                        };
+                    });
                     renderTasks();
                     populateJuntaFilters();
+                    
+                    // Si detectó duplicados, fuerza un guardado silencioso para limpiar el Google Sheet
+                    if (needsAutoFix && !silent) {
+                        setTimeout(() => {
+                            showToast("Auto-corrigiendo IDs duplicados en la base de datos...", "info");
+                            saveDataToAPI('junta');
+                        }, 2000);
+                    }
                 } else {
-                    calendarEvents = data.map(t => ({
-                        id: t.id || getVal(t, ['id']) || `E-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-                        date: toInputDate(t.date || getVal(t, ['fecha'])),
-                        period: t.period || getVal(t, ['jornada', 'horario', 'hora inicio', 'hora']),
-                        department: t.department || getVal(t, ['departamento', 'area']),
-                        director: t.director || getVal(t, ['director']),
-                        location: t.location || getVal(t, ['lugar', 'ubicacion']),
-                        title: t.title || getVal(t, ['evento', 'titulo']),
-                        description: t.description || getVal(t, ['descripcion', 'detalle'])
-                    }));
+                    const seenIds = new Set();
+                    calendarEvents = data.map((t, index) => {
+                        let rowId = String(t.id || getVal(t, ['id']) || "");
+                        // Garantiza ID único si está vacío, es undefined, o viene duplicado del Sheet
+                        if (!rowId || rowId === "undefined" || seenIds.has(rowId)) {
+                            rowId = `E-${Date.now()}-${index}-${Math.floor(Math.random()*1000)}`;
+                            needsAutoFix = true;
+                        }
+                        seenIds.add(rowId);
+
+                        return {
+                            id: rowId,
+                            date: toInputDate(t.date || getVal(t, ['fecha'])),
+                            period: t.period || getVal(t, ['jornada', 'horario', 'hora inicio', 'hora']),
+                            department: t.department || getVal(t, ['departamento', 'area']),
+                            director: t.director || getVal(t, ['director']),
+                            location: t.location || getVal(t, ['lugar', 'ubicacion']),
+                            title: t.title || getVal(t, ['evento', 'titulo']),
+                            description: t.description || getVal(t, ['descripcion', 'detalle'])
+                        };
+                    });
                     populateCalFilters();
                     renderCalendar();
+                    
+                    // Si detectó duplicados, fuerza un guardado silencioso para limpiar el Google Sheet
+                    if (needsAutoFix && !silent) {
+                        setTimeout(() => {
+                            showToast("Auto-corrigiendo IDs duplicados en la base de datos...", "info");
+                            saveDataToAPI('calendario');
+                        }, 2000);
+                    }
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
