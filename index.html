@@ -22,11 +22,12 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         #updateStatusSection { transition: all 0.3s ease-in-out; }
         
-        .loader-large {
-            border: 4px solid #e2e8f0; border-radius: 50%; border-top: 4px solid #2563eb;
-            width: 40px; height: 40px; animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Animación Puntos Secuenciales */
+        .dots-loader { display: flex; gap: 8px; height: 40px; align-items: center; justify-content: center; }
+        .dots-loader div { width: 12px; height: 12px; background-color: #2563eb; border-radius: 50%; animation: dot-bounce 1.4s infinite ease-in-out both; }
+        .dots-loader div:nth-child(1) { animation-delay: -0.32s; }
+        .dots-loader div:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes dot-bounce { 0%, 80%, 100% { transform: scale(0); opacity: 0.6; } 40% { transform: scale(1); opacity: 1; } }
         
         .hidden-view { display: none !important; }
         
@@ -40,7 +41,11 @@
     <!-- OVERLAY DE CARGA / SINCRONIZACIÓN -->
     <div id="fullSyncOverlay" class="fixed inset-0 z-[100] hidden-view flex-col items-center justify-center full-overlay">
         <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-4 text-center max-w-sm border border-slate-100">
-            <div class="loader-large"></div>
+            <div class="dots-loader">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
             <div>
                 <h3 class="text-lg font-bold text-slate-800">Sincronizando...</h3>
                 <p class="text-sm text-slate-500">Guardando datos en la nube de Google Sheets</p>
@@ -66,7 +71,7 @@
         <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-2 text-center">Portal de Gestión Institucional</h1>
         <p class="text-slate-500 mb-12 text-center max-w-xl">Seleccione el módulo al que desea ingresar para gestionar actividades o consultar eventos programados.</p>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl">
             <!-- Card Junta -->
             <button onclick="switchView('junta')" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-400 hover:shadow-lg transition-all group flex flex-col items-center text-center gap-4">
                 <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors">
@@ -75,6 +80,17 @@
                 <div>
                     <h2 class="text-xl font-bold text-slate-800 mb-2">Seguimiento Junta Directiva</h2>
                     <p class="text-sm text-slate-500">Gestione, asigne y realice seguimiento a las actividades y compromisos generados en la junta.</p>
+                </div>
+            </button>
+
+            <!-- Card Jefes -->
+            <button onclick="switchView('jefes')" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:border-purple-400 hover:shadow-lg transition-all group flex flex-col items-center text-center gap-4">
+                <div class="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                    <i data-lucide="briefcase" class="w-10 h-10 text-purple-600 group-hover:text-white transition-colors"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800 mb-2">Seguimiento Jefes</h2>
+                    <p class="text-sm text-slate-500">Control de tareas y compromisos asignados por Presidencia Ejecutiva a los directores.</p>
                 </div>
             </button>
             
@@ -201,6 +217,121 @@
                 <div id="noResultsJunta" class="hidden p-20 text-center">
                     <i data-lucide="folder-search" class="mx-auto w-12 h-12 text-slate-300 mb-4"></i>
                     <p class="text-slate-500 font-medium">No se encontraron tareas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- PANTALLA 2.5: MÓDULO DIRECTORES (JEFES) -->
+    <!-- ========================================================================= -->
+    <div id="jefesView" class="hidden-view min-h-screen pb-20">
+        <!-- Header Jefes -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <button onclick="switchView('landing')" class="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors" title="Volver al inicio">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </button>
+                        <img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo" class="h-10 w-auto object-contain hidden sm:block mix-blend-multiply">
+                        <div class="h-8 w-px bg-slate-300 mx-2 hidden sm:block"></div>
+                        <div>
+                            <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Seguimiento Jefes</h1>
+                            <p class="text-[10px] sm:text-xs text-slate-500 font-medium uppercase tracking-wider">Asignación desde Presidencia</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-3 justify-end">
+                        <div class="relative flex-grow sm:flex-grow-0">
+                            <input type="text" id="jefesTaskSearchInput" placeholder="Buscar actividad..." class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-purple-500 w-full sm:w-48 transition-all">
+                            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                        </div>
+                        <div class="relative flex-grow sm:flex-grow-0">
+                            <select id="jefesResponsibleFilter" class="pl-10 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-purple-500 w-full sm:w-40 cursor-pointer">
+                                <option value="all">Responsable</option>
+                            </select>
+                            <i data-lucide="user-check" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                        </div>
+                        <div class="relative flex-grow sm:flex-grow-0">
+                            <select id="jefesStatusFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-purple-500 cursor-pointer w-full sm:w-32">
+                                <option value="all">Estado</option>
+                                <option value="cumplida">Cumplida</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en proceso">En Proceso</option>
+                            </select>
+                        </div>
+                        <div class="flex gap-2 w-full sm:w-auto items-center justify-end">
+                            <button onclick="openPDFRangeModal('jefes')" class="h-10 px-4 flex items-center justify-center bg-slate-800 text-white rounded-full hover:bg-slate-900 transition-colors shadow-sm gap-2" title="Descargar PDF">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                <span class="text-sm font-bold hidden sm:inline">Descargar Reporte</span>
+                            </button>
+                            <button onclick="openJefesFormModal()" class="h-10 px-4 flex items-center justify-center bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors shadow-sm gap-2" title="Agregar Nueva Actividad">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span class="text-sm font-bold hidden sm:inline">Nueva Actividad</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+            <!-- Grid de Estadísticas y Gráfica -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
+                <div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
+                        <div>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Cumplidas</p>
+                            <h3 class="text-3xl font-bold text-green-600" id="jefes-count-cumplida">0</h3>
+                        </div>
+                        <div class="bg-green-50 p-3 rounded-full text-green-600"><i data-lucide="check-circle" class="w-6 h-6"></i></div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
+                        <div>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Pendientes</p>
+                            <h3 class="text-3xl font-bold text-red-600" id="jefes-count-pendiente">0</h3>
+                        </div>
+                        <div class="bg-red-50 p-3 rounded-full text-red-600"><i data-lucide="clock" class="w-6 h-6"></i></div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
+                        <div>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">En Proceso</p>
+                            <h3 class="text-3xl font-bold text-amber-600" id="jefes-count-proceso">0</h3>
+                        </div>
+                        <div class="bg-amber-50 p-3 rounded-full text-amber-600"><i data-lucide="activity" class="w-6 h-6"></i></div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-center relative min-h-[160px]">
+                    <div class="h-32 w-full flex justify-center"><canvas id="statusChartJefes"></canvas></div>
+                    <div id="chartEmptyStateJefes" class="absolute inset-0 flex items-center justify-center bg-white/50 hidden">
+                        <span class="text-xs text-slate-400">Sin datos</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Actividades -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full text-left border-collapse table-fixed min-w-[800px]">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[10%]">Fecha</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[42%]">Actividad / Tarea</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[15%]">Solicitante</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[15%]">Responsable</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[10%] text-center">Estado</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 text-right w-[8%]">Detalles</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jefesTaskTableBody" class="divide-y divide-slate-100">
+                            <!-- JS Injected -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noResultsJefes" class="hidden p-20 text-center">
+                    <i data-lucide="folder-search" class="mx-auto w-12 h-12 text-slate-300 mb-4"></i>
+                    <p class="text-slate-500 font-medium">No se encontraron tareas asignadas.</p>
                 </div>
             </div>
         </div>
@@ -487,6 +618,194 @@
         </div>
     </div>
 
+    <!-- Modal JEFES: Formulario Actividad -->
+    <div id="formJefesActivityModal" class="fixed inset-0 z-50 hidden-view flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal('formJefesActivityModal')"></div>
+        <div class="bg-white rounded-2xl w-full max-w-xl relative z-10 shadow-2xl overflow-hidden">
+            <form id="jefesActivityForm" onsubmit="saveJefesActivity(event)">
+                <input type="hidden" name="id" id="formJefesTaskId">
+                <div class="bg-purple-600 px-6 py-4 text-white flex justify-between items-center">
+                    <h2 class="text-lg font-bold" id="formJefesTitle">Asignar Tarea a Director</h2>
+                    <button type="button" onclick="closeModal('formJefesActivityModal')" class="text-purple-100 hover:text-white"><i data-lucide="x"></i></button>
+                </div>
+                <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha Solicitud</label>
+                            <input type="date" name="date" id="formJefesDate" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Estado Inicial</label>
+                            <select name="status" id="formJefesStatus" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-purple-500">
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en proceso">En Proceso</option>
+                                <option value="cumplida">Cumplida</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Tarea / Actividad</label>
+                        <textarea name="task" id="formJefesTask" required rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="Descripción detallada de la tarea..."></textarea>
+                    </div>
+
+                    <!-- Bloque Solicitante Fijo -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <label class="text-xs font-bold text-slate-600 uppercase block mb-2">Solicitante</label>
+                        <div class="px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-500 font-bold flex items-center gap-2 cursor-not-allowed">
+                            <i data-lucide="lock" class="w-4 h-4"></i> Iván Javier Flórez (Presidente Ejecutivo)
+                        </div>
+                        <input type="hidden" name="requester" id="formJefesHiddenRequester" value="Iván Javier Flórez">
+                    </div>
+
+                    <!-- Bloque Responsable(s) -->
+                    <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+                        <label class="text-xs font-bold text-purple-600 uppercase block mb-2">Responsable(s)</label>
+                        <div class="flex gap-2 mb-2">
+                            <input type="text" id="jefesRespInput" list="responsiblesJefesDatalist" class="flex-grow px-3 py-2 bg-white border border-purple-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="Seleccione un director...">
+                            <datalist id="responsiblesJefesDatalist"></datalist>
+                            <button type="button" onclick="addJefesPill()" class="px-3 py-2 bg-purple-600 text-white font-bold text-xs rounded-lg hover:bg-purple-700">Añadir</button>
+                        </div>
+                        <div id="responsiblesJefesContainer" class="flex flex-wrap gap-2 min-h-[30px] p-2 bg-white rounded-lg border border-purple-100 empty:hidden"></div>
+                        <input type="hidden" name="responsible" id="formJefesHiddenResponsible" required>
+                    </div>
+
+                    <!-- Sección Redes y Evidencias -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase border-b border-slate-200 pb-2 mb-3">Evidencias y Detalles Iniciales</h4>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2">
+                                <i data-lucide="folder" class="w-3 h-3 text-green-600"></i> Enlace Carpeta/Archivo Drive
+                            </label>
+                            <input type="url" name="image_url" id="formJefesDriveLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="https://drive.google.com/...">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2">
+                                <i data-lucide="facebook" class="w-3 h-3 text-blue-600"></i> Enlace Publicación Facebook
+                            </label>
+                            <input type="url" name="fb_link" id="formJefesFbLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="https://www.facebook.com/...">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Detalle Acción Inicial</label>
+                            <textarea name="detail" id="formJefesDetail" rows="2" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="Observaciones preliminares..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('formJefesActivityModal')" class="px-4 py-2 text-slate-500 font-bold text-sm hover:bg-slate-200 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded-lg font-bold text-sm shadow-md hover:bg-purple-700 transition-all">Guardar Tarea</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal JEFES: Detalles de Actividad -->
+    <div id="jefesTaskModal" class="fixed inset-0 z-50 hidden-view flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal('jefesTaskModal')"></div>
+        <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative z-10 shadow-2xl flex flex-col">
+            <div class="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between flex-shrink-0 z-20">
+                <h2 class="text-xl font-bold text-slate-900">Detalles de la Tarea Asignada</h2>
+                <button onclick="closeModal('jefesTaskModal')" class="p-2 hover:bg-slate-100 rounded-full text-slate-400"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="p-8 overflow-y-auto flex-grow">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-purple-600 mb-1 block">Tarea / Actividad</label>
+                            <p id="modalJefesDesc" class="text-slate-700 font-medium text-lg leading-snug"></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Fecha Solicitud</label>
+                                <p id="modalJefesDate" class="text-slate-700 font-semibold"></p>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Ultimo Monitoreo</label>
+                                <p id="modalJefesMonitoreo" class="text-slate-700 font-semibold"></p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Solicitante</label>
+                                <div id="modalJefesSolicitante" class="flex flex-col gap-1"></div>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Director Responsable</label>
+                                <div id="modalJefesResponsable" class="flex flex-col gap-1"></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-[10px] font-bold uppercase text-slate-500 block">Estado Actual</label>
+                                <div id="modalJefesStatusDisplay"></div>
+                            </div>
+                            <label class="text-[10px] font-bold uppercase text-slate-500 block mb-1">Historial / Detalles</label>
+                            <p id="modalJefesDetalleAccion" class="text-slate-700 text-sm italic bg-white p-3 rounded border border-slate-100 whitespace-pre-line"></p>
+                        </div>
+
+                        <!-- Sección Actualizar Seguimiento -->
+                        <div id="updateJefesStatusSection" class="hidden-view bg-purple-50 p-5 rounded-xl border border-purple-200 shadow-inner">
+                            <h3 class="text-sm font-bold text-purple-800 mb-3 flex items-center gap-2">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Seguimiento
+                            </h3>
+                            <form id="statusJefesUpdateForm" onsubmit="saveJefesStatusUpdate(event)">
+                                <input type="hidden" id="updateJefesTaskId">
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label class="text-[10px] font-bold uppercase text-purple-600 block mb-1">Nuevo Estado</label>
+                                        <select id="updateJefesStatusSelect" required class="w-full px-3 py-2 bg-white border border-purple-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                                            <option value="pendiente">Pendiente</option>
+                                            <option value="en proceso">En Proceso</option>
+                                            <option value="cumplida">Cumplida</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold uppercase text-purple-600 block mb-1">Fecha Seguimiento *</label>
+                                        <input type="date" id="updateJefesDateInput" required class="w-full px-3 py-2 bg-white border border-purple-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-[10px] font-bold uppercase text-purple-600 block mb-1">Descripción del Seguimiento *</label>
+                                    <textarea id="updateJefesDescInput" required rows="2" class="w-full px-3 py-2 bg-white border border-purple-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none" placeholder="Avance o resultado..."></textarea>
+                                </div>
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" onclick="toggleJefesStatusUpdate()" class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-700">Cancelar</button>
+                                    <button type="submit" class="px-4 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 transition-colors">Guardar Cambio</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                         <label class="text-xs font-bold uppercase tracking-widest text-purple-600 block">Redes y Evidencia</label>
+                         <div id="jefesFacebookLinkContainer" class="border rounded-xl p-4 bg-slate-50 flex items-center justify-center border-dashed border-slate-300"></div>
+                         <div id="jefesImageLinkContainer" class="border rounded-xl p-4 bg-slate-50 flex items-center justify-center border-dashed border-slate-300"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-between items-center flex-wrap gap-4 rounded-b-2xl">
+                <button id="btnDeleteJefesTask" class="px-4 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> <span>Eliminar</span>
+                </button>
+                <div class="flex gap-2 flex-wrap">
+                    <button id="btnEmailJefesTask" class="px-4 py-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
+                        <i data-lucide="bell" class="w-4 h-4"></i> Recordatorio
+                    </button>
+                    <button id="btnEditJefesTask" class="px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
+                        <i data-lucide="pencil" class="w-4 h-4"></i> Editar
+                    </button>
+                    <button onclick="toggleJefesStatusUpdate()" class="px-4 py-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
+                        <i data-lucide="edit-3" class="w-4 h-4"></i> Seguimiento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: Enviar Recordatorio Correo -->
     <div id="emailReminderModal" class="fixed inset-0 z-[70] hidden-view flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0" onclick="closeModal('emailReminderModal')"></div>
@@ -627,7 +946,7 @@
         // ==========================================
         // CONFIGURACIÓN CONSTANTE (Google Sheets)
         // ==========================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbzCDNALNrENoHPheorxhpnrl5-5MqLYJ9jARuimygmGsGX9zhTa__6qNamfO9Djlcjk/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyxHoqWycLJnShcIqGwlAm-XEK-mpd71enuvqQU_JnP_BjrGp-c4MJXM2qs5Rc4d0Kz/exec";
 
         // ==========================================
         // VARIABLES GLOBALES Y DICCIONARIOS
@@ -675,11 +994,14 @@
         ];
 
         let tasks = [];
+        let jefesTasks = [];
         let calendarEvents = [];
         let currentModule = 'landing';
         let chartInstance = null;
+        let chartInstanceJefes = null;
         let currentDate = new Date();
         let pendingPills = { requester: [], responsible: [] };
+        let pendingPillsJefes = { responsible: [] };
 
         // ==========================================
         // FUNCIONES DE UTILIDAD COMÚN
@@ -713,6 +1035,7 @@
             currentModule = view;
             document.getElementById('landingView').classList.add('hidden-view');
             document.getElementById('juntaView').classList.add('hidden-view');
+            document.getElementById('jefesView').classList.add('hidden-view');
             document.getElementById('calendarioView').classList.add('hidden-view');
             
             if (view === 'landing') {
@@ -720,6 +1043,9 @@
             } else if (view === 'junta') {
                 document.getElementById('juntaView').classList.remove('hidden-view');
                 fetchDataFromAPI('junta');
+            } else if (view === 'jefes') {
+                document.getElementById('jefesView').classList.remove('hidden-view');
+                fetchDataFromAPI('jefes');
             } else if (view === 'calendario') {
                 document.getElementById('calendarioView').classList.remove('hidden-view');
                 fetchDataFromAPI('calendario');
@@ -774,9 +1100,9 @@
                 
                 let needsAutoFix = false;
                 
-                if (module === 'junta') {
+                if (module === 'junta' || module === 'jefes') {
                     const seenIds = new Set();
-                    tasks = data.map((t, index) => {
+                    const mappedTasks = data.map((t, index) => {
                         let rowId = String(t.id || getVal(t, ['id']) || "");
                         // Garantiza ID único si está vacío, es undefined, o viene duplicado del Sheet
                         if (!rowId || rowId === "undefined" || seenIds.has(rowId)) {
@@ -798,14 +1124,22 @@
                             image_url: t.image_url || getVal(t, ['drive', 'enlace evidencia drive'])
                         };
                     });
-                    renderTasks();
-                    populateJuntaFilters();
+                    
+                    if (module === 'junta') {
+                        tasks = mappedTasks;
+                        renderTasks();
+                        populateJuntaFilters();
+                    } else {
+                        jefesTasks = mappedTasks;
+                        renderJefesTasks();
+                        populateJefesFilters();
+                    }
                     
                     // Si detectó duplicados, fuerza un guardado silencioso para limpiar el Google Sheet
                     if (needsAutoFix && !silent) {
                         setTimeout(() => {
                             showToast("Auto-corrigiendo IDs duplicados en la base de datos...", "info");
-                            saveDataToAPI('junta');
+                            saveDataToAPI(module);
                         }, 2000);
                     }
                 } else {
@@ -853,8 +1187,9 @@
             showSync(true);
             try {
                 let payload = [];
-                if (module === 'junta') {
-                    payload = tasks.map(t => ({
+                if (module === 'junta' || module === 'jefes') {
+                    const dataSource = module === 'junta' ? tasks : jefesTasks;
+                    payload = dataSource.map(t => ({
                         "ID": t.id, "Fecha": t.date, "Tarea": t.task, "Solicitante": t.requester,
                         "Responsable": t.responsible, "Monitoreo": t.monitoring, "Estado": t.status,
                         "Detalles": t.detail, "Facebook": t.fb_link, "Drive": t.image_url,
@@ -1177,11 +1512,274 @@
             }
         }
 
+        // ==========================================
+        // MÓDULO: SEGUIMIENTO JEFES
+        // ==========================================
+        function populateJefesFilters() {
+            const select = document.getElementById('jefesResponsibleFilter');
+            const current = select.value;
+            select.innerHTML = '<option value="all">Responsable</option>';
+            DEPT_RESPONSIBLES.forEach(name => select.add(new Option(name, name)));
+            select.value = current;
+
+            const dlResp = document.getElementById('responsiblesJefesDatalist'); dlResp.innerHTML = '';
+            DEPT_RESPONSIBLES.forEach(x => dlResp.appendChild(new Option(x)));
+        }
+
+        function renderJefesTasks() {
+            jefesTasks.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const fStatus = document.getElementById('jefesStatusFilter').value;
+            const fResp = document.getElementById('jefesResponsibleFilter').value;
+            const qTask = document.getElementById('jefesTaskSearchInput').value.toLowerCase();
+            const tbody = document.getElementById('jefesTaskTableBody');
+            const noRes = document.getElementById('noResultsJefes');
+            tbody.innerHTML = '';
+            
+            const filtered = jefesTasks.filter(t => {
+                const resps = (t.responsible||"").split('-').map(x=>x.trim());
+                const mStat = fStatus === 'all' || (t.status||"").toLowerCase() === fStatus;
+                const mResp = fResp === 'all' || resps.includes(fResp);
+                const mTask = (t.task||"").toLowerCase().includes(qTask);
+                return mStat && mResp && mTask;
+            });
+
+            noRes.classList.toggle('hidden', filtered.length > 0);
+
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors group';
+                
+                const respHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-100 font-medium inline-block max-w-full break-words mb-1">${r}</span><br>` : '').join('');
+                
+                let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
+                if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 text-sm font-bold text-slate-600 align-top">${formatDate(t.date)}</td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top break-words"><div class="text-sm sm:text-base font-bold text-slate-800 leading-snug">${t.task || "Sin Tarea"}</div></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start"><span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 font-bold inline-block max-w-full break-words mb-1">${t.requester || "Iván Javier Flórez"}</span></div></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start">${respHTML}</div></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top text-center"><span class="px-2 py-1 inline-flex rounded-full text-[10px] font-bold border uppercase tracking-wider ${sClass}">${t.status || "Pendiente"}</span></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 text-right align-top">
+                        <button onclick="openJefesModal('${t.id}')" class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-all" title="Ver Detalles"><i data-lucide="info" class="w-5 h-5"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+            updateJefesStats(filtered);
+            updateJefesChart(filtered);
+        }
+
+        function updateJefesStats(filtered) {
+            document.getElementById('jefes-count-cumplida').textContent = filtered.filter(t => t.status === 'cumplida').length;
+            document.getElementById('jefes-count-pendiente').textContent = filtered.filter(t => t.status === 'pendiente').length;
+            document.getElementById('jefes-count-proceso').textContent = filtered.filter(t => t.status === 'en proceso').length;
+        }
+
+        function updateJefesChart(filtered) {
+            const ctx = document.getElementById('statusChartJefes').getContext('2d');
+            const counts = [
+                filtered.filter(t => t.status === 'cumplida').length,
+                filtered.filter(t => t.status === 'pendiente').length,
+                filtered.filter(t => t.status === 'en proceso').length
+            ];
+            const total = counts.reduce((a,b)=>a+b, 0);
+            
+            if (total === 0) {
+                document.getElementById('chartEmptyStateJefes').classList.remove('hidden');
+                if(chartInstanceJefes) { chartInstanceJefes.destroy(); chartInstanceJefes = null; }
+                return;
+            } else {
+                document.getElementById('chartEmptyStateJefes').classList.add('hidden');
+            }
+
+            if (chartInstanceJefes) {
+                chartInstanceJefes.data.datasets[0].data = counts;
+                chartInstanceJefes.update();
+            } else {
+                chartInstanceJefes = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: ['Cumplida', 'Pendiente', 'En Proceso'], datasets: [{ data: counts, backgroundColor: ['#16a34a', '#dc2626', '#d97706'], borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
+                });
+            }
+        }
+
+        function renderJefesPills() {
+            const container = document.getElementById('responsiblesJefesContainer');
+            container.innerHTML = '';
+            pendingPillsJefes.responsible.forEach((name, index) => {
+                const pill = document.createElement('div');
+                pill.className = `flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-bold border border-purple-200`;
+                pill.innerHTML = `<span>${name}</span> <button type="button" onclick="removeJefesPill(${index})" class="text-purple-500 hover:text-purple-900"><i data-lucide="x" class="w-3 h-3"></i></button>`;
+                container.appendChild(pill);
+            });
+            document.getElementById('formJefesHiddenResponsible').value = pendingPillsJefes.responsible.join(" - ");
+            lucide.createIcons();
+        }
+
+        function addJefesPill() {
+            const input = document.getElementById('jefesRespInput');
+            const val = input.value.trim();
+            if (val && !pendingPillsJefes.responsible.includes(val)) {
+                pendingPillsJefes.responsible.push(val);
+                renderJefesPills();
+                input.value = '';
+            }
+        }
+        function removeJefesPill(index) { pendingPillsJefes.responsible.splice(index, 1); renderJefesPills(); }
+
+        function openJefesFormModal(id = null) {
+            document.getElementById('jefesActivityForm').reset();
+            pendingPillsJefes = { responsible: [] };
+            renderJefesPills();
+            document.getElementById('formJefesTitle').textContent = "Asignar Tarea a Director";
+            document.getElementById('formJefesDate').valueAsDate = new Date();
+            document.getElementById('formJefesTaskId').value = "";
+            document.getElementById('formJefesHiddenRequester').value = "Iván Javier Flórez";
+            
+            if (id) {
+                const t = jefesTasks.find(x => String(x.id) === String(id));
+                if (t) {
+                    document.getElementById('formJefesTitle').textContent = "Editar Tarea";
+                    document.getElementById('formJefesTaskId').value = t.id;
+                    document.getElementById('formJefesDate').value = toInputDate(t.date);
+                    document.getElementById('formJefesStatus').value = t.status || 'pendiente';
+                    document.getElementById('formJefesTask').value = t.task;
+                    document.getElementById('formJefesDriveLink').value = t.image_url;
+                    document.getElementById('formJefesFbLink').value = t.fb_link;
+                    document.getElementById('formJefesDetail').value = t.detail;
+                    
+                    if(t.responsible) { pendingPillsJefes.responsible = t.responsible.split('-').map(s=>s.trim()).filter(x=>x); renderJefesPills(); }
+                }
+            }
+            document.getElementById('formJefesActivityModal').classList.remove('hidden-view');
+        }
+
+        async function saveJefesActivity(e) {
+            e.preventDefault();
+            if (pendingPillsJefes.responsible.length === 0) { showToast("Añade al menos un Director Responsable", "error"); return; }
+            
+            const fd = new FormData(e.target);
+            const idVal = fd.get('id');
+            const taskData = {
+                date: fd.get('date'), task: fd.get('task'), status: fd.get('status'),
+                requester: document.getElementById('formJefesHiddenRequester').value, 
+                responsible: document.getElementById('formJefesHiddenResponsible').value,
+                image_url: fd.get('image_url'), fb_link: fd.get('fb_link'), detail: fd.get('detail'), monitoring: ""
+            };
+
+            if (idVal) {
+                const idx = jefesTasks.findIndex(t => String(t.id) === String(idVal));
+                if (idx > -1) Object.assign(jefesTasks[idx], taskData);
+            } else {
+                jefesTasks.unshift({ id: `T-${Date.now()}-${Math.floor(Math.random()*1000)}`, ...taskData });
+            }
+            
+            closeModal('formJefesActivityModal');
+            closeModal('jefesTaskModal');
+            await saveDataToAPI('jefes');
+        }
+
+        function openJefesModal(id) {
+            const t = jefesTasks.find(x => String(x.id) === String(id));
+            if (!t) return;
+            
+            document.getElementById('modalJefesDesc').textContent = t.task;
+            document.getElementById('modalJefesDate').textContent = formatDate(t.date);
+            document.getElementById('modalJefesMonitoreo').textContent = formatDate(t.monitoring) || "N/A";
+            document.getElementById('modalJefesDetalleAccion').innerText = t.detail || "Sin detalles.";
+            
+            document.getElementById('modalJefesSolicitante').innerHTML = `<span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded border border-slate-200 font-bold w-max">${t.requester || "Iván Javier Flórez"}</span>`;
+            document.getElementById('modalJefesResponsable').innerHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-100 font-medium w-max">${r}</span>` : '').join('');
+            
+            let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
+            if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
+            if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
+            if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
+            document.getElementById('modalJefesStatusDisplay').innerHTML = `<span class="px-3 py-1 rounded-full font-bold text-xs border uppercase tracking-wider ${sClass}">${t.status}</span>`;
+
+            const fbContainer = document.getElementById('jefesFacebookLinkContainer');
+            if (t.fb_link && t.fb_link.trim() !== "") {
+                fbContainer.innerHTML = `
+                    <div class="w-full flex justify-between items-center gap-4">
+                         <div class="flex items-center gap-2 text-blue-800"><i data-lucide="facebook" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Facebook</span></div>
+                         <a href="${t.fb_link}" target="_blank" class="text-xs bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-bold shadow-sm flex items-center gap-2"><span>Abrir</span><i data-lucide="external-link" class="w-3 h-3"></i></a>
+                    </div>`;
+            } else { fbContainer.innerHTML = `<div class="text-center p-4"><i data-lucide="facebook" class="w-8 h-8 mx-auto text-slate-300 mb-1"></i><p class="text-xs text-slate-400">Sin enlace.</p><button onclick="closeModal('jefesTaskModal'); openJefesFormModal('${t.id}')" class="mt-1 text-[10px] text-purple-600 font-bold underline">Añadir</button></div>`; }
+
+            const driveContainer = document.getElementById('jefesImageLinkContainer');
+            if (t.image_url && t.image_url.trim() !== "") {
+                 driveContainer.innerHTML = `
+                    <div class="w-full flex justify-between items-center gap-4">
+                         <div class="flex items-center gap-2 text-green-700"><i data-lucide="folder" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Evidencia</span></div>
+                         <a href="${t.image_url}" target="_blank" class="text-xs bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-bold shadow-sm flex items-center gap-2"><span>Abrir</span><i data-lucide="external-link" class="w-3 h-3"></i></a>
+                    </div>`;
+            } else { driveContainer.innerHTML = `<div class="text-center p-4"><i data-lucide="folder-x" class="w-8 h-8 mx-auto text-slate-300 mb-1"></i><p class="text-xs text-slate-400">Sin evidencia.</p><button onclick="closeModal('jefesTaskModal'); openJefesFormModal('${t.id}')" class="mt-1 text-[10px] text-purple-600 font-bold underline">Añadir</button></div>`; }
+
+            document.getElementById('updateJefesTaskId').value = t.id;
+            document.getElementById('updateJefesStatusSelect').value = t.status || 'pendiente';
+            document.getElementById('updateJefesDateInput').valueAsDate = new Date();
+            document.getElementById('updateJefesDescInput').value = '';
+            document.getElementById('updateJefesStatusSection').classList.add('hidden-view');
+
+            document.getElementById('btnEditJefesTask').onclick = () => { closeModal('jefesTaskModal'); openJefesFormModal(t.id); };
+            
+            const btnDelete = document.getElementById('btnDeleteJefesTask');
+            const spanText = btnDelete.querySelector('span');
+            spanText.textContent = "Eliminar";
+            btnDelete.className = "px-4 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all";
+            btnDelete.onclick = async () => {
+                if (spanText.textContent === "¿Confirmar?") {
+                    jefesTasks = jefesTasks.filter(x => String(x.id) !== String(t.id));
+                    closeModal('jefesTaskModal');
+                    await saveDataToAPI('jefes');
+                } else {
+                    spanText.textContent = "¿Confirmar?";
+                    btnDelete.classList.remove('bg-red-100', 'text-red-700');
+                    btnDelete.classList.add('bg-red-600', 'text-white');
+                }
+            };
+            
+            document.getElementById('btnEmailJefesTask').onclick = () => openEmailModal(t.id, 'jefes');
+
+            document.getElementById('jefesTaskModal').classList.remove('hidden-view');
+            lucide.createIcons();
+        }
+
+        function toggleJefesStatusUpdate() { document.getElementById('updateJefesStatusSection').classList.toggle('hidden-view'); }
+
+        async function saveJefesStatusUpdate(e) {
+            e.preventDefault();
+            const taskId = document.getElementById('updateJefesTaskId').value;
+            const newStatus = document.getElementById('updateJefesStatusSelect').value;
+            const newDate = document.getElementById('updateJefesDateInput').value;
+            const desc = document.getElementById('updateJefesDescInput').value;
+            
+            const idx = jefesTasks.findIndex(t => String(t.id) === String(taskId));
+            
+            if (idx !== -1) {
+                jefesTasks[idx].status = newStatus;
+                jefesTasks[idx].monitoring = newDate;
+                const currentDetail = jefesTasks[idx].detail || "";
+                jefesTasks[idx].detail = `[${formatDate(newDate)} - ${newStatus.toUpperCase()}] ${desc}\n${currentDetail}`;
+                
+                closeModal('jefesTaskModal');
+                await saveDataToAPI('jefes');
+            } else {
+                showToast("Error crítico: No se encontró la ID de la tarea", "error");
+            }
+        }
+
         // --- SISTEMA DE ENVÍO DE CORREOS CON MODAL ---
         let currentTaskForEmail = null;
 
-        function openEmailModal(taskId) {
-            const t = tasks.find(x => String(x.id) === String(taskId));
+        function openEmailModal(taskId, context = 'junta') {
+            const dataSource = context === 'junta' ? tasks : jefesTasks;
+            const t = dataSource.find(x => String(x.id) === String(taskId));
             if (!t) return;
             currentTaskForEmail = t;
 
@@ -1513,7 +2111,8 @@
                     </tr>`;
                 }).join('');
             } else {
-                let filtered = tasks.filter(t => {
+                const dataSource = module === 'junta' ? tasks : jefesTasks;
+                let filtered = dataSource.filter(t => {
                     const d = new Date(toInputDate(t.date)); d.setUTCHours(12,0,0,0);
                     return d >= sDate && d <= eDate;
                 }).sort((a,b) => new Date(toInputDate(a.date)) - new Date(toInputDate(b.date)));
@@ -1539,7 +2138,10 @@
                 }).join('');
             }
 
-            const title = module === 'calendario' ? 'Calendario de Eventos y Actividades' : 'Seguimiento Junta Directiva';
+            let title = 'Reporte';
+            if (module === 'calendario') title = 'Calendario de Eventos y Actividades';
+            if (module === 'junta') title = 'Seguimiento Junta Directiva';
+            if (module === 'jefes') title = 'Seguimiento Tareas de Directores';
             
             const logoHtml = `<img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo Cámara de Comercio" onerror="this.outerHTML='<h2>CÁMARA DE COMERCIO DE IPIALES</h2>'">`;
 
@@ -1604,11 +2206,16 @@
             document.getElementById('taskSearchInput').addEventListener('input', renderTasks);
             document.getElementById('responsibleFilter').addEventListener('change', renderTasks);
             document.getElementById('statusFilter').addEventListener('change', renderTasks);
+            
+            document.getElementById('jefesTaskSearchInput').addEventListener('input', renderJefesTasks);
+            document.getElementById('jefesResponsibleFilter').addEventListener('change', renderJefesTasks);
+            document.getElementById('jefesStatusFilter').addEventListener('change', renderJefesTasks);
+
             lucide.createIcons();
 
             // Sincronización permanente en segundo plano (cada 30 segundos)
             setInterval(() => {
-                if (currentModule === 'junta' || currentModule === 'calendario') {
+                if (currentModule === 'junta' || currentModule === 'calendario' || currentModule === 'jefes') {
                     fetchDataFromAPI(currentModule, true);
                 }
             }, 30000);
