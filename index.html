@@ -950,7 +950,7 @@
 
     <!-- SCRIPT PRINCIPAL -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwHfPFuwPB1OgbimV7_zdUGNUMvh2qKX7TwJ18RtGRgJUYtAq4MZkLQ1weHo_MuLpCo/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyr7CI5yV2U2hQ1PA3NecdHl8dGiWTBS9MzZv44YJ5JrAMBOz6T4r9CXmJO8anzihz2/exec";
 
         // ==========================================
         // FUNCIONES DE UTILIDAD Y PROTECCIÓN
@@ -2010,8 +2010,8 @@
 
             document.getElementById('emailTo').value = emails.join(', ');
             
-            // Emoji 🔔 restaurado en el frontend
-            document.getElementById('emailSubject').value = "🔔 Recordatorio de Actividad: " + (t.task.length > 50 ? t.task.substring(0, 50) + "..." : t.task);
+            // Emoji 🔔 removido para evitar problemas de codificación de caracteres en GMail
+            document.getElementById('emailSubject').value = "Recordatorio de Actividad: " + (t.task.length > 50 ? t.task.substring(0, 50) + "..." : t.task);
             
             document.getElementById('emailMessage').value = "";
             document.getElementById('emailReminderModal').classList.remove('hidden-view');
