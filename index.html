@@ -950,7 +950,7 @@
 
     <!-- SCRIPT PRINCIPAL -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyQZemRaA0oby9Yye2mUFCGZdcxS8mX5oHyF99fCy7TxFO82GNO6o76UA2ITveSrqEE/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwHfPFuwPB1OgbimV7_zdUGNUMvh2qKX7TwJ18RtGRgJUYtAq4MZkLQ1weHo_MuLpCo/exec";
 
         // ==========================================
         // FUNCIONES DE UTILIDAD Y PROTECCIÓN
@@ -968,7 +968,6 @@
             }
         }
 
-        // --- ORDENAMIENTO INTELIGENTE (Prioridad Plazo, Cumplidas al final) ---
         function smartTaskSort(a, b) {
             const isACumplida = (a.status || '').toLowerCase() === 'cumplida';
             const isBCumplida = (b.status || '').toLowerCase() === 'cumplida';
@@ -991,9 +990,7 @@
             const dueA = getValidTime(a.due_date, Infinity);
             const dueB = getValidTime(b.due_date, Infinity);
 
-            if (dueA !== dueB) {
-                return dueA - dueB; 
-            }
+            if (dueA !== dueB) return dueA - dueB; 
 
             const createdA = getValidTime(a.date, 0);
             const createdB = getValidTime(b.date, 0);
@@ -1744,6 +1741,7 @@
                 const mStat = fStatus === 'all' || (t.status||"").toLowerCase() === fStatus;
                 const mResp = fResp === 'all' || resps.includes(fResp);
                 const mTask = (t.task||"").toLowerCase().includes(qTask);
+                
                 const timeInfo = getTimeStatus(t.due_date, t.status);
                 const mTime = fTime === 'all' || timeInfo.code === fTime;
 
@@ -2011,7 +2009,10 @@
             });
 
             document.getElementById('emailTo').value = emails.join(', ');
+            
+            // Emoji 🔔 restaurado en el frontend
             document.getElementById('emailSubject').value = "🔔 Recordatorio de Actividad: " + (t.task.length > 50 ? t.task.substring(0, 50) + "..." : t.task);
+            
             document.getElementById('emailMessage').value = "";
             document.getElementById('emailReminderModal').classList.remove('hidden-view');
             lucide.createIcons();
