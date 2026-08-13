@@ -39,11 +39,12 @@
 
     <!-- OVERLAY DE CARGA / SINCRONIZACIÓN -->
     <div id="fullSyncOverlay" class="fixed inset-0 z-[100] hidden-view flex-col items-center justify-center full-overlay">
-        <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-4 text-center max-w-sm border border-slate-100">
+        <div class="bg-white p-8 rounded-2xl shadow-xl flex flex-col items-center gap-4 text-center max-w-sm border border-slate-100 relative">
+            <button onclick="showSync(false)" title="Cancelar Sincronización" class="absolute top-3 right-3 p-1 text-slate-400 hover:bg-slate-100 hover:text-red-500 rounded-full transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
             <div class="dots-loader"><div></div><div></div><div></div></div>
             <div>
-                <h3 class="text-lg font-bold text-slate-800">Sincronizando...</h3>
-                <p class="text-sm text-slate-500">Guardando datos en la nube</p>
+                <h3 class="text-lg font-bold text-slate-800 mb-1">Sincronizando...</h3>
+                <p class="text-sm text-slate-500">Conectando con la base de datos</p>
             </div>
         </div>
     </div>
@@ -949,7 +950,55 @@
 
     <!-- SCRIPT PRINCIPAL -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzEubbYewtUev24dv-vCozhc9r4nT98XQNz9KfC4Ie0diQ-9UDLu-Qiw7kfyM05YkZr/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyQZemRaA0oby9Yye2mUFCGZdcxS8mX5oHyF99fCy7TxFO82GNO6o76UA2ITveSrqEE/exec";
+
+        // ==========================================
+        // FUNCIONES DE UTILIDAD Y PROTECCIÓN
+        // ==========================================
+        async function fetchWithTimeout(url, options = {}, timeout = 15000) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(id);
+                return response;
+            } catch (error) {
+                clearTimeout(id);
+                throw error;
+            }
+        }
+
+        // --- ORDENAMIENTO INTELIGENTE (Prioridad Plazo, Cumplidas al final) ---
+        function smartTaskSort(a, b) {
+            const isACumplida = (a.status || '').toLowerCase() === 'cumplida';
+            const isBCumplida = (b.status || '').toLowerCase() === 'cumplida';
+
+            if (isACumplida && !isBCumplida) return 1;
+            if (!isACumplida && isBCumplida) return -1;
+
+            const getValidTime = (dateStr, fallback) => {
+                if (!dateStr) return fallback;
+                const time = new Date(dateStr).getTime();
+                return isNaN(time) ? fallback : time;
+            };
+
+            if (isACumplida && isBCumplida) {
+                const createdA = getValidTime(a.date, 0);
+                const createdB = getValidTime(b.date, 0);
+                return createdB - createdA; 
+            }
+
+            const dueA = getValidTime(a.due_date, Infinity);
+            const dueB = getValidTime(b.due_date, Infinity);
+
+            if (dueA !== dueB) {
+                return dueA - dueB; 
+            }
+
+            const createdA = getValidTime(a.date, 0);
+            const createdB = getValidTime(b.date, 0);
+            return createdB - createdA;
+        }
 
         const BOARD_MEMBERS = [
             "Dr. Alexander Sánchez", "Dr. Cristian Huertas", "Dr. Edgar López", "Dr. Edwin Pérez",
@@ -1091,10 +1140,13 @@
             }
         }
 
+        // ==========================================
+        // API FETCH & SAVE
+        // ==========================================
         async function fetchDataFromAPI(module, silent = false) {
             if (!silent) showSync(true);
             try {
-                const res = await fetch(`${API_URL}?type=${module}`);
+                const res = await fetchWithTimeout(`${API_URL}?type=${module}`, {}, 15000);
                 const data = await res.json();
                 let needsAutoFix = false;
                 
@@ -1155,7 +1207,7 @@
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
-                showToast("Error de conexión al cargar datos", "error");
+                showToast("Tiempo de espera agotado o error de red.", "error");
             } finally {
                 if (!silent) showSync(false);
             }
@@ -1183,22 +1235,22 @@
                     }));
                 }
 
-                await fetch(API_URL, {
+                await fetchWithTimeout(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ type: module, payload: payload })
-                });
+                }, 15000);
                 showToast("Datos guardados correctamente", "success");
                 await fetchDataFromAPI(module, true);
             } catch (error) {
-                showToast("Error al guardar en la nube", "error");
+                showToast("Error de conexión al guardar", "error");
             } finally {
                 showSync(false);
             }
         }
 
         // ==========================================
-        // EXPORTACIÓN A EXCEL (.xls) UNIFICADA
+        // EXPORTACIONES (.xls y .pdf)
         // ==========================================
         function exportToExcel(module) {
             const dataSource = module === 'junta' ? tasks : jefesTasks;
@@ -1237,9 +1289,6 @@
             URL.revokeObjectURL(url);
         }
 
-        // ==========================================
-        // MÓDULO: EXPORTACIÓN PDF
-        // ==========================================
         function openPDFRangeModal(module) {
             document.getElementById('pdfModuleType').value = module;
             document.getElementById('pdfStartDate').value = ""; document.getElementById('pdfEndDate').value = "";
@@ -1301,7 +1350,7 @@
                 let filtered = dataSource.filter(t => {
                     const d = new Date(toInputDate(t.date)); d.setUTCHours(12,0,0,0);
                     return d >= sDate && d <= eDate;
-                }).sort((a,b) => new Date(toInputDate(a.date)) - new Date(toInputDate(b.date)));
+                }).sort(smartTaskSort);
 
                 tableHeaders = '<tr><th style="width: 12%;">Fechas</th><th style="width: 48%;">Actividad / Tarea</th><th style="width: 12%;">Solicitante</th><th style="width: 13%;">Responsable</th><th style="width: 15%; text-align: center;">Estado / Plazo</th></tr>';
                 tableRows = filtered.map(t => {
@@ -1412,7 +1461,8 @@
         }
 
         function renderTasks() {
-            tasks.sort((a, b) => new Date(b.date) - new Date(a.date));
+            tasks.sort(smartTaskSort);
+            
             const fStatus = document.getElementById('statusFilter').value;
             const fResp = document.getElementById('responsibleFilter').value;
             const fTime = document.getElementById('juntaTimeFilter').value;
@@ -1426,7 +1476,6 @@
                 const mStat = fStatus === 'all' || (t.status||"").toLowerCase() === fStatus;
                 const mResp = fResp === 'all' || resps.includes(fResp);
                 const mTask = (t.task||"").toLowerCase().includes(qTask);
-                
                 const timeInfo = getTimeStatus(t.due_date, t.status);
                 const mTime = fTime === 'all' || timeInfo.code === fTime;
 
@@ -1680,7 +1729,8 @@
         }
 
         function renderJefesTasks() {
-            jefesTasks.sort((a, b) => new Date(b.date) - new Date(a.date));
+            jefesTasks.sort(smartTaskSort);
+            
             const fStatus = document.getElementById('jefesStatusFilter').value;
             const fResp = document.getElementById('jefesResponsibleFilter').value;
             const fTime = document.getElementById('jefesTimeFilter').value;
@@ -1694,7 +1744,6 @@
                 const mStat = fStatus === 'all' || (t.status||"").toLowerCase() === fStatus;
                 const mResp = fResp === 'all' || resps.includes(fResp);
                 const mTask = (t.task||"").toLowerCase().includes(qTask);
-                
                 const timeInfo = getTimeStatus(t.due_date, t.status);
                 const mTime = fTime === 'all' || timeInfo.code === fTime;
 
@@ -1985,11 +2034,11 @@
             };
 
             try {
-                const res = await fetch(API_URL, {
+                const res = await fetchWithTimeout(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ type: 'email_reminder', payload: payload })
-                });
+                }, 15000);
                 const data = await res.json();
                 if(data.status === 'success') {
                     showToast("Correo enviado exitosamente", "success");
