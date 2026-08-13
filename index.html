@@ -20,9 +20,8 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        #updateStatusSection { transition: all 0.3s ease-in-out; }
+        #updateStatusSection, #updateJefesStatusSection { transition: all 0.3s ease-in-out; }
         
-        /* Animación Puntos Secuenciales */
         .dots-loader { display: flex; gap: 8px; height: 40px; align-items: center; justify-content: center; }
         .dots-loader div { width: 12px; height: 12px; background-color: #2563eb; border-radius: 50%; animation: dot-bounce 1.4s infinite ease-in-out both; }
         .dots-loader div:nth-child(1) { animation-delay: -0.32s; }
@@ -41,14 +40,10 @@
     <!-- OVERLAY DE CARGA / SINCRONIZACIÓN -->
     <div id="fullSyncOverlay" class="fixed inset-0 z-[100] hidden-view flex-col items-center justify-center full-overlay">
         <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-4 text-center max-w-sm border border-slate-100">
-            <div class="dots-loader">
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
+            <div class="dots-loader"><div></div><div></div><div></div></div>
             <div>
                 <h3 class="text-lg font-bold text-slate-800">Sincronizando...</h3>
-                <p class="text-sm text-slate-500">Guardando datos en la nube de Google Sheets</p>
+                <p class="text-sm text-slate-500">Guardando datos en la nube</p>
             </div>
         </div>
     </div>
@@ -61,18 +56,13 @@
         </div>
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- PANTALLA 1: LANDING PAGE -->
-    <!-- ========================================================================= -->
+    <!-- LANDING VIEW -->
     <div id="landingView" class="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-blue-50">
-        <!-- Logo con mix-blend para quitar el fondo blanco -->
         <img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo" class="h-24 mb-10 object-contain mix-blend-multiply">
-        
         <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-2 text-center">Portal de Gestión Institucional</h1>
         <p class="text-slate-500 mb-12 text-center max-w-xl">Seleccione el módulo al que desea ingresar para gestionar actividades o consultar eventos programados.</p>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl">
-            <!-- Card Junta -->
             <button onclick="switchView('junta')" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-400 hover:shadow-lg transition-all group flex flex-col items-center text-center gap-4">
                 <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors">
                     <i data-lucide="users" class="w-10 h-10 text-blue-600 group-hover:text-white transition-colors"></i>
@@ -83,7 +73,6 @@
                 </div>
             </button>
 
-            <!-- Card Jefes -->
             <button onclick="switchView('jefes')" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:border-purple-400 hover:shadow-lg transition-all group flex flex-col items-center text-center gap-4">
                 <div class="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center group-hover:bg-purple-600 transition-colors">
                     <i data-lucide="briefcase" class="w-10 h-10 text-purple-600 group-hover:text-white transition-colors"></i>
@@ -94,7 +83,6 @@
                 </div>
             </button>
             
-            <!-- Card Calendario -->
             <button onclick="switchView('calendario')" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:border-green-400 hover:shadow-lg transition-all group flex flex-col items-center text-center gap-4">
                 <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-colors">
                     <i data-lucide="calendar-days" class="w-10 h-10 text-green-600 group-hover:text-white transition-colors"></i>
@@ -107,11 +95,8 @@
         </div>
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- PANTALLA 2: MÓDULO JUNTA DIRECTIVA -->
-    <!-- ========================================================================= -->
+    <!-- MÓDULO JUNTA DIRECTIVA -->
     <div id="juntaView" class="hidden-view min-h-screen pb-20">
-        <!-- Header Junta -->
         <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
                 <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
@@ -129,29 +114,41 @@
                     
                     <div class="flex flex-wrap items-center gap-3 justify-end">
                         <div class="relative flex-grow sm:flex-grow-0">
-                            <input type="text" id="taskSearchInput" placeholder="Buscar actividad..." class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-48 transition-all">
+                            <input type="text" id="taskSearchInput" placeholder="Buscar actividad..." class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-44 transition-all">
                             <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
                         </div>
                         <div class="relative flex-grow sm:flex-grow-0">
-                            <select id="responsibleFilter" class="pl-10 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-40 cursor-pointer">
+                            <select id="responsibleFilter" class="pl-10 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-36 cursor-pointer">
                                 <option value="all">Responsable</option>
                             </select>
                             <i data-lucide="user-check" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
                         </div>
                         <div class="relative flex-grow sm:flex-grow-0">
-                            <select id="statusFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 cursor-pointer w-full sm:w-32">
+                            <select id="statusFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 cursor-pointer w-full sm:w-28">
                                 <option value="all">Estado</option>
                                 <option value="cumplida">Cumplida</option>
                                 <option value="pendiente">Pendiente</option>
                                 <option value="en proceso">En Proceso</option>
                             </select>
                         </div>
+                        <div class="relative flex-grow sm:flex-grow-0">
+                            <select id="juntaTimeFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 cursor-pointer w-full sm:w-32 font-medium">
+                                <option value="all">Plazo (Todos)</option>
+                                <option value="a_tiempo">A tiempo</option>
+                                <option value="por_vencer">Por vencer</option>
+                                <option value="vencida">Vencida</option>
+                            </select>
+                        </div>
                         <div class="flex gap-2 w-full sm:w-auto items-center justify-end">
-                            <button onclick="openPDFRangeModal('junta')" class="h-10 px-4 flex items-center justify-center bg-slate-800 text-white rounded-full hover:bg-slate-900 transition-colors shadow-sm gap-2" title="Descargar PDF">
-                                <i data-lucide="download" class="w-4 h-4"></i>
-                                <span class="text-sm font-bold hidden sm:inline">Descargar Reporte</span>
+                            <button onclick="exportToExcel('junta')" class="h-10 px-3 flex items-center justify-center bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-colors shadow-sm gap-1.5" title="Exportar a Excel">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                                <span class="text-xs font-bold hidden sm:inline">Excel</span>
                             </button>
-                            <button onclick="openJuntaFormModal()" class="h-10 px-4 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-sm gap-2" title="Agregar Nueva Actividad">
+                            <button onclick="openPDFRangeModal('junta')" class="h-10 px-4 flex items-center justify-center bg-slate-800 text-white rounded-full hover:bg-slate-900 transition-colors shadow-sm gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                <span class="text-sm font-bold hidden sm:inline">PDF</span>
+                            </button>
+                            <button onclick="openJuntaFormModal()" class="h-10 px-4 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-sm gap-2">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
                                 <span class="text-sm font-bold hidden sm:inline">Nueva Actividad</span>
                             </button>
@@ -162,7 +159,6 @@
         </header>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-            <!-- Grid de Estadísticas y Gráfica -->
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
                 <div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
@@ -195,23 +191,20 @@
                 </div>
             </div>
 
-            <!-- Tabla de Actividades -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
                 <div class="overflow-x-auto w-full">
-                    <table class="w-full text-left border-collapse table-fixed min-w-[800px]">
+                    <table class="w-full text-left border-collapse table-fixed min-w-[850px]">
                         <thead>
                             <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
-                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[10%]">Fecha</th>
-                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[42%]">Actividad / Tarea</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[12%]">Fechas</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[38%]">Actividad / Tarea</th>
                                 <th class="px-4 py-3 sm:px-6 sm:py-4 w-[15%]">Solicitante</th>
                                 <th class="px-4 py-3 sm:px-6 sm:py-4 w-[15%]">Responsable</th>
-                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[10%] text-center">Estado</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[12%] text-center">Estado / Plazo</th>
                                 <th class="px-4 py-3 sm:px-6 sm:py-4 text-right w-[8%]">Detalles</th>
                             </tr>
                         </thead>
-                        <tbody id="taskTableBody" class="divide-y divide-slate-100">
-                            <!-- JS Injected -->
-                        </tbody>
+                        <tbody id="taskTableBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
                 <div id="noResultsJunta" class="hidden p-20 text-center">
@@ -222,11 +215,8 @@
         </div>
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- PANTALLA 2.5: MÓDULO DIRECTORES (JEFES) -->
-    <!-- ========================================================================= -->
+    <!-- MÓDULO DIRECTORES (JEFES) -->
     <div id="jefesView" class="hidden-view min-h-screen pb-20">
-        <!-- Header Jefes -->
         <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
                 <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
@@ -244,31 +234,43 @@
                     
                     <div class="flex flex-wrap items-center gap-3 justify-end">
                         <div class="relative flex-grow sm:flex-grow-0">
-                            <input type="text" id="jefesTaskSearchInput" placeholder="Buscar actividad..." class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-purple-500 w-full sm:w-48 transition-all">
+                            <input type="text" id="jefesTaskSearchInput" placeholder="Buscar actividad..." class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-purple-500 w-full sm:w-44 transition-all">
                             <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
                         </div>
                         <div class="relative flex-grow sm:flex-grow-0">
-                            <select id="jefesResponsibleFilter" class="pl-10 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-purple-500 w-full sm:w-40 cursor-pointer">
+                            <select id="jefesResponsibleFilter" class="pl-10 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-purple-500 w-full sm:w-36 cursor-pointer">
                                 <option value="all">Responsable</option>
                             </select>
                             <i data-lucide="user-check" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
                         </div>
                         <div class="relative flex-grow sm:flex-grow-0">
-                            <select id="jefesStatusFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-purple-500 cursor-pointer w-full sm:w-32">
+                            <select id="jefesStatusFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-purple-500 cursor-pointer w-full sm:w-28">
                                 <option value="all">Estado</option>
                                 <option value="cumplida">Cumplida</option>
                                 <option value="pendiente">Pendiente</option>
                                 <option value="en proceso">En Proceso</option>
                             </select>
                         </div>
+                        <div class="relative flex-grow sm:flex-grow-0">
+                            <select id="jefesTimeFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-purple-500 cursor-pointer w-full sm:w-32 font-medium">
+                                <option value="all">Plazo (Todos)</option>
+                                <option value="a_tiempo">A tiempo</option>
+                                <option value="por_vencer">Por vencer</option>
+                                <option value="vencida">Vencida</option>
+                            </select>
+                        </div>
                         <div class="flex gap-2 w-full sm:w-auto items-center justify-end">
-                            <button onclick="openPDFRangeModal('jefes')" class="h-10 px-4 flex items-center justify-center bg-slate-800 text-white rounded-full hover:bg-slate-900 transition-colors shadow-sm gap-2" title="Descargar PDF">
-                                <i data-lucide="download" class="w-4 h-4"></i>
-                                <span class="text-sm font-bold hidden sm:inline">Descargar Reporte</span>
+                            <button onclick="exportToExcel('jefes')" class="h-10 px-4 flex items-center justify-center bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-colors shadow-sm gap-2" title="Exportar a Excel">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                                <span class="text-sm font-bold hidden sm:inline">Excel</span>
                             </button>
-                            <button onclick="openJefesFormModal()" class="h-10 px-4 flex items-center justify-center bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors shadow-sm gap-2" title="Agregar Nueva Actividad">
+                            <button onclick="openPDFRangeModal('jefes')" class="h-10 px-4 flex items-center justify-center bg-slate-800 text-white rounded-full hover:bg-slate-900 transition-colors shadow-sm gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                <span class="text-sm font-bold hidden sm:inline">PDF</span>
+                            </button>
+                            <button onclick="openJefesFormModal()" class="h-10 px-4 flex items-center justify-center bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors shadow-sm gap-2">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
-                                <span class="text-sm font-bold hidden sm:inline">Nueva Actividad</span>
+                                <span class="text-sm font-bold hidden sm:inline">Nueva Tarea</span>
                             </button>
                         </div>
                     </div>
@@ -277,7 +279,6 @@
         </header>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-            <!-- Grid de Estadísticas y Gráfica -->
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
                 <div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
@@ -310,23 +311,20 @@
                 </div>
             </div>
 
-            <!-- Tabla de Actividades -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
                 <div class="overflow-x-auto w-full">
-                    <table class="w-full text-left border-collapse table-fixed min-w-[800px]">
+                    <table class="w-full text-left border-collapse table-fixed min-w-[850px]">
                         <thead>
                             <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
-                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[10%]">Fecha</th>
-                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[42%]">Actividad / Tarea</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[12%]">Fechas</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[38%]">Actividad / Tarea</th>
                                 <th class="px-4 py-3 sm:px-6 sm:py-4 w-[15%]">Solicitante</th>
                                 <th class="px-4 py-3 sm:px-6 sm:py-4 w-[15%]">Responsable</th>
-                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[10%] text-center">Estado</th>
+                                <th class="px-4 py-3 sm:px-6 sm:py-4 w-[12%] text-center">Estado / Plazo</th>
                                 <th class="px-4 py-3 sm:px-6 sm:py-4 text-right w-[8%]">Detalles</th>
                             </tr>
                         </thead>
-                        <tbody id="jefesTaskTableBody" class="divide-y divide-slate-100">
-                            <!-- JS Injected -->
-                        </tbody>
+                        <tbody id="jefesTaskTableBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
                 <div id="noResultsJefes" class="hidden p-20 text-center">
@@ -337,16 +335,13 @@
         </div>
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- PANTALLA 3: MÓDULO CALENDARIO DEPARTAMENTOS -->
-    <!-- ========================================================================= -->
+    <!-- MÓDULO CALENDARIO -->
     <div id="calendarioView" class="hidden-view min-h-screen pb-20">
-        <!-- Header Calendario -->
         <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
                 <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
-                        <button onclick="switchView('landing')" class="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors" title="Volver al inicio">
+                        <button onclick="switchView('landing')" class="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
                             <i data-lucide="arrow-left" class="w-5 h-5"></i>
                         </button>
                         <img src="https://ccipiales.org.co/wp-content/uploads/2018/03/logobs.png" alt="Logo" class="h-10 w-auto object-contain hidden sm:block mix-blend-multiply">
@@ -363,16 +358,27 @@
                             <button onclick="resetMonth()" class="px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-white rounded shadow-sm">Hoy</button>
                             <button onclick="changeMonth(1)" class="p-1.5 hover:bg-white rounded text-slate-600 shadow-sm"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
                         </div>
+                        
+                        <div class="flex items-center bg-slate-100 p-1 rounded-lg">
+                            <button id="btnViewGrid" onclick="toggleCalendarView('grid')" class="px-3 py-1.5 text-xs font-bold rounded bg-white text-slate-800 shadow-sm flex items-center gap-1">
+                                <i data-lucide="grid" class="w-3.5 h-3.5"></i> Mes
+                            </button>
+                            <button id="btnViewAgenda" onclick="toggleCalendarView('agenda')" class="px-3 py-1.5 text-xs font-bold rounded text-slate-500 hover:text-slate-800 flex items-center gap-1">
+                                <i data-lucide="list" class="w-3.5 h-3.5"></i> Agenda
+                            </button>
+                        </div>
+
                         <div class="relative flex-grow sm:flex-grow-0">
-                            <select id="calDeptFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer w-full sm:w-48 font-medium">
+                            <select id="calDeptFilter" class="pl-4 pr-8 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer w-full sm:w-44 font-medium">
                                 <option value="all">Todas las Áreas</option>
                             </select>
                             <i data-lucide="filter" class="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
                         </div>
+                        
                         <div class="flex gap-2 w-full sm:w-auto items-center justify-end">
-                            <button onclick="openPDFRangeModal('calendario')" class="h-10 px-4 flex items-center justify-center bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors shadow-sm gap-2" title="Descargar PDF">
+                            <button onclick="openPDFRangeModal('calendario')" class="h-10 px-4 flex items-center justify-center bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors shadow-sm gap-2">
                                 <i data-lucide="download" class="w-4 h-4"></i>
-                                <span class="text-sm font-bold hidden sm:inline">Descargar Reporte</span>
+                                <span class="text-sm font-bold hidden sm:inline">PDF</span>
                             </button>
                             <button onclick="openCalendarFormModal()" class="h-10 px-4 flex items-center justify-center bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm gap-2">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
@@ -385,25 +391,24 @@
         </header>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-            <!-- Grid Calendario Mensual -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div id="calendarGridContainer" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">
                     <div class="py-3">Dom</div><div class="py-3">Lun</div><div class="py-3">Mar</div>
                     <div class="py-3">Mié</div><div class="py-3">Jue</div><div class="py-3">Vie</div><div class="py-3">Sáb</div>
                 </div>
-                <div id="calendarGrid" class="grid grid-cols-7 auto-rows-[120px] bg-slate-200 gap-px">
-                    <!-- JS INJECTED CALENDAR -->
-                </div>
+                <div id="calendarGrid" class="grid grid-cols-7 auto-rows-[120px] bg-slate-200 gap-px"></div>
+            </div>
+
+            <div id="calendarAgendaContainer" class="hidden-view bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-5 h-5 text-green-600"></i> Agendamiento Mensual
+                </h3>
+                <div id="calendarAgendaList" class="space-y-3"></div>
             </div>
         </div>
     </div>
 
-
-    <!-- ========================================================================= -->
-    <!-- ZONA DE MODALES (FLOTANTES) -->
-    <!-- ========================================================================= -->
-
-    <!-- Modal Universal de Rango PDF -->
+    <!-- MODALES -->
     <div id="pdfRangeModal" class="fixed inset-0 z-[60] hidden-view flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0" onclick="closeModal('pdfRangeModal')"></div>
         <div class="bg-white rounded-2xl w-full max-w-sm relative z-10 shadow-2xl overflow-hidden p-6">
@@ -427,7 +432,7 @@
         </div>
     </div>
 
-    <!-- Modal JUNTA: Formulario Actividad -->
+    <!-- Modal JUNTA Formulario -->
     <div id="formActivityModal" class="fixed inset-0 z-50 hidden-view flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0" onclick="closeModal('formActivityModal')"></div>
         <div class="bg-white rounded-2xl w-full max-w-xl relative z-10 shadow-2xl overflow-hidden">
@@ -438,15 +443,20 @@
                     <button type="button" onclick="closeModal('formActivityModal')" class="text-blue-100 hover:text-white"><i data-lucide="x"></i></button>
                 </div>
                 <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
-                    
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-3 gap-3">
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha Solicitud</label>
-                            <input type="date" name="date" id="formDate" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                            <input type="date" name="date" id="formDate" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-blue-700 uppercase block mb-1 flex items-center gap-1">
+                                <i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i> Fecha Límite *
+                            </label>
+                            <input type="date" name="due_date" id="formDueDate" required class="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs font-bold text-blue-900 focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Estado Inicial</label>
-                            <select name="status" id="formStatus" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                            <select name="status" id="formStatus" class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500">
                                 <option value="pendiente">Pendiente</option>
                                 <option value="en proceso">En Proceso</option>
                                 <option value="cumplida">Cumplida</option>
@@ -456,14 +466,13 @@
 
                     <div>
                         <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Tarea / Actividad</label>
-                        <textarea name="task" id="formTask" required rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Descripción detallada de la tarea..."></textarea>
+                        <textarea name="task" id="formTask" required rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Descripción detallada..."></textarea>
                     </div>
 
-                    <!-- Bloque Solicitante(s) -->
                     <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
                         <label class="text-xs font-bold text-indigo-600 uppercase block mb-2">Solicitante(s)</label>
                         <div class="flex gap-2 mb-2">
-                            <input type="text" id="juntaRequesterInput" list="requestersDatalist" class="flex-grow px-3 py-2 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Escriba o seleccione un solicitante...">
+                            <input type="text" id="juntaRequesterInput" list="requestersDatalist" class="flex-grow px-3 py-2 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Seleccione solicitante...">
                             <datalist id="requestersDatalist"></datalist>
                             <button type="button" onclick="addPill('requester')" class="px-3 py-2 bg-indigo-600 text-white font-bold text-xs rounded-lg hover:bg-indigo-700">Añadir</button>
                         </div>
@@ -471,11 +480,10 @@
                         <input type="hidden" name="requester" id="formHiddenRequester" required>
                     </div>
 
-                    <!-- Bloque Responsable(s) -->
                     <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                        <label class="text-xs font-bold text-blue-600 uppercase block mb-2">Responsable(s) / Apoyos</label>
+                        <label class="text-xs font-bold text-blue-600 uppercase block mb-2">Responsable(s)</label>
                         <div class="flex gap-2 mb-2">
-                            <input type="text" id="juntaRespInput" list="responsiblesDatalist" class="flex-grow px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Escriba o seleccione un responsable...">
+                            <input type="text" id="juntaRespInput" list="responsiblesDatalist" class="flex-grow px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Seleccione responsable...">
                             <datalist id="responsiblesDatalist"></datalist>
                             <button type="button" onclick="addPill('responsible')" class="px-3 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-700">Añadir</button>
                         </div>
@@ -483,24 +491,19 @@
                         <input type="hidden" name="responsible" id="formHiddenResponsible" required>
                     </div>
 
-                    <!-- Sección Redes y Evidencias -->
                     <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                        <h4 class="text-xs font-bold text-slate-700 uppercase border-b border-slate-200 pb-2 mb-3">Evidencias y Detalles Iniciales</h4>
+                        <h4 class="text-xs font-bold text-slate-700 uppercase border-b border-slate-200 pb-2 mb-3">Evidencias e Historial Inicial</h4>
                         <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2">
-                                <i data-lucide="folder" class="w-3 h-3 text-green-600"></i> Enlace Carpeta/Archivo Drive
-                            </label>
-                            <input type="url" name="image_url" id="formDriveLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="https://drive.google.com/...">
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Enlace Drive</label>
+                            <input type="url" name="image_url" id="formDriveLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2">
-                                <i data-lucide="facebook" class="w-3 h-3 text-blue-600"></i> Enlace Publicación Facebook
-                            </label>
-                            <input type="url" name="fb_link" id="formFbLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="https://www.facebook.com/...">
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Enlace Facebook</label>
+                            <input type="url" name="fb_link" id="formFbLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Detalle Acción Inicial</label>
-                            <textarea name="detail" id="formDetail" rows="2" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" placeholder="Observaciones preliminares..."></textarea>
+                            <textarea name="detail" id="formDetail" rows="2" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"></textarea>
                         </div>
                     </div>
                 </div>
@@ -512,7 +515,7 @@
         </div>
     </div>
 
-    <!-- Modal JUNTA: Detalles de Actividad y Seguimiento -->
+    <!-- Modal JUNTA Detalle -->
     <div id="taskModal" class="fixed inset-0 z-50 hidden-view flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0" onclick="closeModal('taskModal')"></div>
         <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative z-10 shadow-2xl flex flex-col">
@@ -528,14 +531,18 @@
                             <label class="text-[10px] font-bold uppercase text-blue-600 mb-1 block">Tarea / Actividad</label>
                             <p id="modalDesc" class="text-slate-700 font-medium text-lg leading-snug"></p>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-3 gap-3">
                             <div>
                                 <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Fecha Solicitud</label>
-                                <p id="modalDate" class="text-slate-700 font-semibold"></p>
+                                <p id="modalDate" class="text-slate-700 font-semibold text-xs"></p>
                             </div>
                             <div>
-                                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Ultimo Monitoreo</label>
-                                <p id="modalMonitoreo" class="text-slate-700 font-semibold"></p>
+                                <label class="text-[10px] font-bold uppercase text-blue-600 block mb-1">Fecha Límite</label>
+                                <p id="modalDueDate" class="text-blue-900 font-bold text-xs"></p>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Último Monitoreo</label>
+                                <p id="modalMonitoreo" class="text-slate-700 font-semibold text-xs"></p>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -551,14 +558,13 @@
 
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                             <div class="flex items-center justify-between mb-2">
-                                <label class="text-[10px] font-bold uppercase text-slate-500 block">Estado Actual</label>
-                                <div id="modalStatusDisplay"></div>
+                                <label class="text-[10px] font-bold uppercase text-slate-500 block">Estado y Cumplimiento</label>
+                                <div id="modalStatusDisplay" class="flex items-center gap-2"></div>
                             </div>
                             <label class="text-[10px] font-bold uppercase text-slate-500 block mb-1">Historial / Detalles</label>
                             <p id="modalDetalleAccion" class="text-slate-700 text-sm italic bg-white p-3 rounded border border-slate-100 whitespace-pre-line"></p>
                         </div>
 
-                        <!-- Sección Actualizar Seguimiento -->
                         <div id="updateStatusSection" class="hidden-view bg-blue-50 p-5 rounded-xl border border-blue-200 shadow-inner">
                             <h3 class="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
                                 <i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Seguimiento
@@ -618,7 +624,7 @@
         </div>
     </div>
 
-    <!-- Modal JEFES: Formulario Actividad -->
+    <!-- Modal JEFES Formulario -->
     <div id="formJefesActivityModal" class="fixed inset-0 z-50 hidden-view flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0" onclick="closeModal('formJefesActivityModal')"></div>
         <div class="bg-white rounded-2xl w-full max-w-xl relative z-10 shadow-2xl overflow-hidden">
@@ -630,14 +636,20 @@
                 </div>
                 <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
                     
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-3 gap-3">
                         <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha Solicitud</label>
-                            <input type="date" name="date" id="formJefesDate" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-purple-500">
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha Asignación</label>
+                            <input type="date" name="date" id="formJefesDate" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-xs font-medium focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-purple-700 uppercase block mb-1 flex items-center gap-1">
+                                <i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i> Fecha Límite *
+                            </label>
+                            <input type="date" name="due_date" id="formJefesDueDate" required class="w-full px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg text-xs font-bold text-purple-900 focus:ring-2 focus:ring-purple-500">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Estado Inicial</label>
-                            <select name="status" id="formJefesStatus" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-purple-500">
+                            <select name="status" id="formJefesStatus" class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-xs font-medium focus:ring-2 focus:ring-purple-500">
                                 <option value="pendiente">Pendiente</option>
                                 <option value="en proceso">En Proceso</option>
                                 <option value="cumplida">Cumplida</option>
@@ -650,7 +662,6 @@
                         <textarea name="task" id="formJefesTask" required rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="Descripción detallada de la tarea..."></textarea>
                     </div>
 
-                    <!-- Bloque Solicitante Fijo -->
                     <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                         <label class="text-xs font-bold text-slate-600 uppercase block mb-2">Solicitante</label>
                         <div class="px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-500 font-bold flex items-center gap-2 cursor-not-allowed">
@@ -659,11 +670,10 @@
                         <input type="hidden" name="requester" id="formJefesHiddenRequester" value="Iván Javier Flórez">
                     </div>
 
-                    <!-- Bloque Responsable(s) -->
                     <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
                         <label class="text-xs font-bold text-purple-600 uppercase block mb-2">Responsable(s)</label>
                         <div class="flex gap-2 mb-2">
-                            <input type="text" id="jefesRespInput" list="responsiblesJefesDatalist" class="flex-grow px-3 py-2 bg-white border border-purple-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="Seleccione un director...">
+                            <input type="text" id="jefesRespInput" list="responsiblesJefesDatalist" class="flex-grow px-3 py-2 bg-white border border-purple-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="Seleccione director...">
                             <datalist id="responsiblesJefesDatalist"></datalist>
                             <button type="button" onclick="addJefesPill()" class="px-3 py-2 bg-purple-600 text-white font-bold text-xs rounded-lg hover:bg-purple-700">Añadir</button>
                         </div>
@@ -671,24 +681,19 @@
                         <input type="hidden" name="responsible" id="formJefesHiddenResponsible" required>
                     </div>
 
-                    <!-- Sección Redes y Evidencias -->
                     <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                         <h4 class="text-xs font-bold text-slate-700 uppercase border-b border-slate-200 pb-2 mb-3">Evidencias y Detalles Iniciales</h4>
                         <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2">
-                                <i data-lucide="folder" class="w-3 h-3 text-green-600"></i> Enlace Carpeta/Archivo Drive
-                            </label>
-                            <input type="url" name="image_url" id="formJefesDriveLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="https://drive.google.com/...">
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Enlace Drive</label>
+                            <input type="url" name="image_url" id="formJefesDriveLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500">
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1 flex items-center gap-2">
-                                <i data-lucide="facebook" class="w-3 h-3 text-blue-600"></i> Enlace Publicación Facebook
-                            </label>
-                            <input type="url" name="fb_link" id="formJefesFbLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="https://www.facebook.com/...">
+                            <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Enlace Facebook</label>
+                            <input type="url" name="fb_link" id="formJefesFbLink" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Detalle Acción Inicial</label>
-                            <textarea name="detail" id="formJefesDetail" rows="2" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500" placeholder="Observaciones preliminares..."></textarea>
+                            <textarea name="detail" id="formJefesDetail" rows="2" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"></textarea>
                         </div>
                     </div>
                 </div>
@@ -700,7 +705,7 @@
         </div>
     </div>
 
-    <!-- Modal JEFES: Detalles de Actividad -->
+    <!-- Modal JEFES Detalle -->
     <div id="jefesTaskModal" class="fixed inset-0 z-50 hidden-view flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0" onclick="closeModal('jefesTaskModal')"></div>
         <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative z-10 shadow-2xl flex flex-col">
@@ -716,14 +721,18 @@
                             <label class="text-[10px] font-bold uppercase text-purple-600 mb-1 block">Tarea / Actividad</label>
                             <p id="modalJefesDesc" class="text-slate-700 font-medium text-lg leading-snug"></p>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-3 gap-3">
                             <div>
-                                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Fecha Solicitud</label>
-                                <p id="modalJefesDate" class="text-slate-700 font-semibold"></p>
+                                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Fecha Asignación</label>
+                                <p id="modalJefesDate" class="text-slate-700 font-semibold text-xs"></p>
                             </div>
                             <div>
-                                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Ultimo Monitoreo</label>
-                                <p id="modalJefesMonitoreo" class="text-slate-700 font-semibold"></p>
+                                <label class="text-[10px] font-bold uppercase text-purple-600 block mb-1">Fecha Límite</label>
+                                <p id="modalJefesDueDate" class="text-purple-900 font-bold text-xs"></p>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Último Monitoreo</label>
+                                <p id="modalJefesMonitoreo" class="text-slate-700 font-semibold text-xs"></p>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -739,14 +748,13 @@
 
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                             <div class="flex items-center justify-between mb-2">
-                                <label class="text-[10px] font-bold uppercase text-slate-500 block">Estado Actual</label>
-                                <div id="modalJefesStatusDisplay"></div>
+                                <label class="text-[10px] font-bold uppercase text-slate-500 block">Estado y Cumplimiento</label>
+                                <div id="modalJefesStatusDisplay" class="flex items-center gap-2"></div>
                             </div>
                             <label class="text-[10px] font-bold uppercase text-slate-500 block mb-1">Historial / Detalles</label>
                             <p id="modalJefesDetalleAccion" class="text-slate-700 text-sm italic bg-white p-3 rounded border border-slate-100 whitespace-pre-line"></p>
                         </div>
 
-                        <!-- Sección Actualizar Seguimiento -->
                         <div id="updateJefesStatusSection" class="hidden-view bg-purple-50 p-5 rounded-xl border border-purple-200 shadow-inner">
                             <h3 class="text-sm font-bold text-purple-800 mb-3 flex items-center gap-2">
                                 <i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Seguimiento
@@ -806,7 +814,7 @@
         </div>
     </div>
 
-    <!-- MODAL: Enviar Recordatorio Correo -->
+    <!-- MODAL RECORDATORIO CORREO -->
     <div id="emailReminderModal" class="fixed inset-0 z-[70] hidden-view flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0" onclick="closeModal('emailReminderModal')"></div>
         <div class="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl overflow-hidden">
@@ -818,8 +826,7 @@
                 <div class="p-6 space-y-4">
                     <div>
                         <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Destinatario(s)</label>
-                        <input type="text" id="emailTo" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="correo@ejemplo.com">
-                        <p class="text-[10px] text-slate-400 mt-1">Separe múltiples correos con comas.</p>
+                        <input type="text" id="emailTo" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Asunto</label>
@@ -827,7 +834,7 @@
                     </div>
                     <div>
                         <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Mensaje Adicional</label>
-                        <textarea id="emailMessage" rows="4" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Agregue un comentario personalizado al correo..."></textarea>
+                        <textarea id="emailMessage" rows="4" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"></textarea>
                     </div>
                 </div>
                 <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
@@ -838,7 +845,7 @@
         </div>
     </div>
 
-    <!-- Modal CALENDARIO: Formulario Evento -->
+    <!-- MODAL CALENDARIO Evento -->
     <div id="calendarFormModal" class="fixed inset-0 z-50 hidden-view flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0" onclick="closeModal('calendarFormModal')"></div>
         <div class="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl overflow-hidden">
@@ -850,9 +857,9 @@
                 </div>
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Área / Departamento que Reporta</label>
+                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Área / Departamento</label>
                         <select id="calDept" required onchange="updateEventDirector()" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer">
-                            <option value="" disabled selected>Seleccione el departamento...</option>
+                            <option value="" disabled selected>Seleccione departamento...</option>
                         </select>
                     </div>
                     <div>
@@ -860,14 +867,13 @@
                         <input type="text" id="calDirector" readonly class="w-full px-4 py-2 bg-slate-50 border border-slate-200 text-slate-500 rounded-lg text-sm cursor-not-allowed">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="col-span-1">
+                        <div>
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Fecha</label>
                             <input type="date" id="calDate" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500">
                         </div>
-                        <div class="col-span-1">
+                        <div>
                             <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Jornada</label>
                             <select id="calPeriod" required class="w-full px-3 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 cursor-pointer">
-                                <option value="" disabled selected>Seleccione la jornada...</option>
                                 <option value="Todo el día">Todo el día</option>
                                 <option value="Mañana">Mañana</option>
                                 <option value="Tarde">Tarde</option>
@@ -880,11 +886,11 @@
                     </div>
                     <div>
                         <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Nombre del Evento</label>
-                        <input type="text" id="calTitle" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 font-bold" placeholder="Título corto y claro">
+                        <input type="text" id="calTitle" required class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 font-bold" placeholder="Título corto">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-slate-500 uppercase block mb-1">Descripción / Notas</label>
-                        <textarea id="calDesc" rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500" placeholder="Detalles adicionales..."></textarea>
+                        <textarea id="calDesc" rows="2" class="w-full px-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500"></textarea>
                     </div>
                 </div>
                 <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
@@ -895,7 +901,7 @@
         </div>
     </div>
 
-    <!-- Modal CALENDARIO: Detalles Evento -->
+    <!-- MODAL CALENDARIO Detalle -->
     <div id="calendarDetailModal" class="fixed inset-0 z-[60] hidden-view flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0" onclick="closeModal('calendarDetailModal')"></div>
         <div class="bg-white rounded-2xl w-full max-w-md relative z-10 shadow-2xl overflow-hidden flex flex-col">
@@ -943,14 +949,8 @@
 
     <!-- SCRIPT PRINCIPAL -->
     <script>
-        // ==========================================
-        // CONFIGURACIÓN CONSTANTE (Google Sheets)
-        // ==========================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbyxHoqWycLJnShcIqGwlAm-XEK-mpd71enuvqQU_JnP_BjrGp-c4MJXM2qs5Rc4d0Kz/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbzKTNUKMg3FL-dJi8YjACdJ7CFux0CgosJMST81H7HKleOeONgQI9vTkerOtO2haXM3/exec";
 
-        // ==========================================
-        // VARIABLES GLOBALES Y DICCIONARIOS
-        // ==========================================
         const BOARD_MEMBERS = [
             "Dr. Alexander Sánchez", "Dr. Cristian Huertas", "Dr. Edgar López", "Dr. Edwin Pérez",
             "Dr. Iván Flórez", "Dr. Jesús Verdugo", "Dr. Miguel Leyton", "Dr. Néstor Pantoja",
@@ -1001,12 +1001,10 @@
         let chartInstance = null;
         let chartInstanceJefes = null;
         let currentDate = new Date();
+        let currentCalView = 'grid';
         let pendingPills = { requester: [], responsible: [] };
         let pendingPillsJefes = { responsible: [] };
 
-        // ==========================================
-        // FUNCIONES DE UTILIDAD COMÚN
-        // ==========================================
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const text = document.getElementById('toastMessage');
@@ -1020,10 +1018,7 @@
 
             container.classList.remove('toast-hide');
             container.classList.add('toast-show');
-            setTimeout(() => {
-                container.classList.remove('toast-show');
-                container.classList.add('toast-hide');
-            }, 4000);
+            setTimeout(() => { container.classList.remove('toast-show'); container.classList.add('toast-hide'); }, 4000);
         }
 
         function showSync(show) {
@@ -1034,22 +1029,13 @@
 
         function switchView(view) {
             currentModule = view;
-            document.getElementById('landingView').classList.add('hidden-view');
-            document.getElementById('juntaView').classList.add('hidden-view');
-            document.getElementById('jefesView').classList.add('hidden-view');
-            document.getElementById('calendarioView').classList.add('hidden-view');
+            ['landingView', 'juntaView', 'jefesView', 'calendarioView'].forEach(id => document.getElementById(id).classList.add('hidden-view'));
             
             if (view === 'landing') {
                 document.getElementById('landingView').classList.remove('hidden-view');
-            } else if (view === 'junta') {
-                document.getElementById('juntaView').classList.remove('hidden-view');
-                fetchDataFromAPI('junta');
-            } else if (view === 'jefes') {
-                document.getElementById('jefesView').classList.remove('hidden-view');
-                fetchDataFromAPI('jefes');
-            } else if (view === 'calendario') {
-                document.getElementById('calendarioView').classList.remove('hidden-view');
-                fetchDataFromAPI('calendario');
+            } else {
+                document.getElementById(`${view}View`).classList.remove('hidden-view');
+                fetchDataFromAPI(view);
             }
         }
 
@@ -1078,7 +1064,6 @@
             return "";
         }
 
-        // Helper inteligente para ignorar mayúsculas y espacios ocultos en los encabezados de Google Sheets
         function getVal(obj, keys) {
             for (let k of keys) {
                 const foundKey = Object.keys(obj).find(key => key.trim().toLowerCase() === k.toLowerCase());
@@ -1089,23 +1074,34 @@
             return "";
         }
 
-        // ==========================================
-        // CONEXIÓN AUTOMÁTICA API (Google Sheets)
-        // ==========================================
+        function getTimeStatus(dueDateStr, currentStatus) {
+            if (currentStatus === 'cumplida') return { code: 'a_tiempo', label: 'CUMPLIDA', badgeClass: 'bg-green-100 text-green-800 border-green-200', pdfColor: '#16a34a' };
+            if (!dueDateStr) return { code: 'a_tiempo', label: 'A TIEMPO', badgeClass: 'bg-blue-100 text-blue-800 border-blue-200', pdfColor: '#1e40af' };
+
+            const today = new Date(); today.setHours(0,0,0,0);
+            const due = new Date(dueDateStr); due.setHours(0,0,0,0);
+            const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                return { code: 'vencida', label: 'VENCIDA', badgeClass: 'bg-red-100 text-red-800 border-red-300 font-extrabold animate-pulse', pdfColor: '#dc2626' };
+            } else if (diffDays <= 2) {
+                return { code: 'por_vencer', label: 'POR VENCER', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300 font-bold', pdfColor: '#d97706' };
+            } else {
+                return { code: 'a_tiempo', label: 'A TIEMPO', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200', pdfColor: '#059669' };
+            }
+        }
+
         async function fetchDataFromAPI(module, silent = false) {
             if (!silent) showSync(true);
             try {
-                const url = `${API_URL}?type=${module}`;
-                const res = await fetch(url);
+                const res = await fetch(`${API_URL}?type=${module}`);
                 const data = await res.json();
-                
                 let needsAutoFix = false;
                 
                 if (module === 'junta' || module === 'jefes') {
                     const seenIds = new Set();
                     const mappedTasks = data.map((t, index) => {
                         let rowId = String(t.id || getVal(t, ['id']) || "");
-                        // Garantiza ID único si está vacío, es undefined, o viene duplicado del Sheet
                         if (!rowId || rowId === "undefined" || seenIds.has(rowId)) {
                             rowId = `T-${Date.now()}-${index}-${Math.floor(Math.random()*1000)}`;
                             needsAutoFix = true;
@@ -1115,6 +1111,7 @@
                         return {
                             id: rowId,
                             date: toInputDate(t.date || getVal(t, ['fecha'])),
+                            due_date: toInputDate(t.due_date || getVal(t, ['fecha limite', 'fecha límite', 'vencimiento', 'limite'])),
                             task: t.task || getVal(t, ['tarea', 'actividad / tarea']),
                             requester: t.requester || getVal(t, ['solicitante']),
                             responsible: t.responsible || getVal(t, ['responsable']),
@@ -1127,27 +1124,15 @@
                     });
                     
                     if (module === 'junta') {
-                        tasks = mappedTasks;
-                        renderTasks();
-                        populateJuntaFilters();
+                        tasks = mappedTasks; renderTasks(); populateJuntaFilters();
                     } else {
-                        jefesTasks = mappedTasks;
-                        renderJefesTasks();
-                        populateJefesFilters();
+                        jefesTasks = mappedTasks; renderJefesTasks(); populateJefesFilters();
                     }
-                    
-                    // Si detectó duplicados, fuerza un guardado silencioso para limpiar el Google Sheet
-                    if (needsAutoFix && !silent) {
-                        setTimeout(() => {
-                            showToast("Auto-corrigiendo IDs duplicados en la base de datos...", "info");
-                            saveDataToAPI(module);
-                        }, 2000);
-                    }
+                    if (needsAutoFix && !silent) saveDataToAPI(module);
                 } else {
                     const seenIds = new Set();
                     calendarEvents = data.map((t, index) => {
                         let rowId = String(t.id || getVal(t, ['id']) || "");
-                        // Garantiza ID único si está vacío, es undefined, o viene duplicado del Sheet
                         if (!rowId || rowId === "undefined" || seenIds.has(rowId)) {
                             rowId = `E-${Date.now()}-${index}-${Math.floor(Math.random()*1000)}`;
                             needsAutoFix = true;
@@ -1157,7 +1142,7 @@
                         return {
                             id: rowId,
                             date: toInputDate(t.date || getVal(t, ['fecha'])),
-                            period: t.period || getVal(t, ['jornada', 'horario', 'hora inicio', 'hora']),
+                            period: t.period || getVal(t, ['jornada', 'horario', 'hora inicio']),
                             department: t.department || getVal(t, ['departamento', 'area']),
                             director: t.director || getVal(t, ['director']),
                             location: t.location || getVal(t, ['lugar', 'ubicacion']),
@@ -1165,16 +1150,8 @@
                             description: t.description || getVal(t, ['descripcion', 'detalle'])
                         };
                     });
-                    populateCalFilters();
-                    renderCalendar();
-                    
-                    // Si detectó duplicados, fuerza un guardado silencioso para limpiar el Google Sheet
-                    if (needsAutoFix && !silent) {
-                        setTimeout(() => {
-                            showToast("Auto-corrigiendo IDs duplicados en la base de datos...", "info");
-                            saveDataToAPI('calendario');
-                        }, 2000);
-                    }
+                    populateCalFilters(); renderCalendar();
+                    if (needsAutoFix && !silent) saveDataToAPI('calendario');
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
@@ -1191,38 +1168,16 @@
                 if (module === 'junta' || module === 'jefes') {
                     const dataSource = module === 'junta' ? tasks : jefesTasks;
                     payload = dataSource.map(t => ({
-                        "ID": t.id, "Fecha": t.date, "Tarea": t.task, "Solicitante": t.requester,
+                        "ID": t.id, "Fecha": t.date, "Fecha Limite": t.due_date || "", "Tarea": t.task, "Solicitante": t.requester,
                         "Responsable": t.responsible, "Monitoreo": t.monitoring, "Estado": t.status,
                         "Detalles": t.detail, "Facebook": t.fb_link, "Drive": t.image_url,
-                        "date": t.date, "task": t.task, "requester": t.requester, "responsible": t.responsible,
+                        "date": t.date, "due_date": t.due_date, "task": t.task, "requester": t.requester, "responsible": t.responsible,
                         "monitoring": t.monitoring, "status": t.status, "detail": t.detail, "fb_link": t.fb_link, "image_url": t.image_url
                     }));
                 } else {
                     payload = calendarEvents.map(t => ({
-                        // Enviamos múltiples variantes para evadir diferencias en nombres de columnas de Google Sheets
-                        "ID": t.id, 
-                        "Fecha": t.date, 
-                        "Jornada": t.period,
-                        "Hora Inicio": t.period, 
-                        "Hora": t.period,
-                        "Hora_Inicio": t.period,
-                        "Hora_inicio": t.period,
-                        "Inicio": t.period,
-                        "Desde": t.period,
-                        "Hora Fin": "",
-                        "Hora_Fin": "",
-                        "Hora_fin": "",
-                        "Fin": "",
-                        "Hasta": "",
-                        "Departamento": t.department, 
-                        "Area": t.department,
-                        "Director": t.director, 
-                        "Lugar": t.location,
-                        "Ubicacion": t.location,
-                        "Evento": t.title, 
-                        "Titulo": t.title,
-                        "Descripcion": t.description,
-                        "Detalle": t.description,
+                        "ID": t.id, "Fecha": t.date, "Jornada": t.period, "Departamento": t.department, 
+                        "Director": t.director, "Lugar": t.location, "Evento": t.title, "Descripcion": t.description,
                         "date": t.date, "period": t.period, "department": t.department,
                         "director": t.director, "location": t.location, "title": t.title, "description": t.description
                     }));
@@ -1233,11 +1188,9 @@
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ type: module, payload: payload })
                 });
-                
                 showToast("Datos guardados correctamente", "success");
                 await fetchDataFromAPI(module, true);
             } catch (error) {
-                console.error("Save error:", error);
                 showToast("Error al guardar en la nube", "error");
             } finally {
                 showSync(false);
@@ -1245,815 +1198,47 @@
         }
 
         // ==========================================
-        // MÓDULO: JUNTA DIRECTIVA
+        // EXPORTACIÓN A EXCEL (.xls) UNIFICADA
         // ==========================================
-        function populateJuntaFilters() {
-            const select = document.getElementById('responsibleFilter');
-            const current = select.value;
-            select.innerHTML = '<option value="all">Responsable</option>';
-            DEPT_RESPONSIBLES.forEach(name => select.add(new Option(name, name)));
-            select.value = current;
+        function exportToExcel(module) {
+            const dataSource = module === 'junta' ? tasks : jefesTasks;
+            if (dataSource.length === 0) { showToast("No hay datos para exportar", "error"); return; }
 
-            const dlReq = document.getElementById('requestersDatalist'); dlReq.innerHTML = '';
-            BOARD_MEMBERS.forEach(x => dlReq.appendChild(new Option(x)));
+            let tableHtml = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head><meta charset="utf-8"></head><body><table border="1">
+            <tr><th style="background-color: #f3f4f6;">ID</th><th style="background-color: #f3f4f6;">Fecha Solicitud/Asignación</th><th style="background-color: #f3f4f6;">Fecha Límite</th><th style="background-color: #f3f4f6;">Tarea</th><th style="background-color: #f3f4f6;">Solicitante</th><th style="background-color: #f3f4f6;">Responsable</th><th style="background-color: #f3f4f6;">Estado</th><th style="background-color: #f3f4f6;">Plazo de Entrega</th><th style="background-color: #f3f4f6;">Último Monitoreo</th><th style="background-color: #f3f4f6;">Detalles</th></tr>`;
             
-            const dlResp = document.getElementById('responsiblesDatalist'); dlResp.innerHTML = '';
-            DEPT_RESPONSIBLES.forEach(x => dlResp.appendChild(new Option(x)));
-        }
-
-        function renderTasks() {
-            tasks.sort((a, b) => new Date(b.date) - new Date(a.date));
-            const fStatus = document.getElementById('statusFilter').value;
-            const fResp = document.getElementById('responsibleFilter').value;
-            const qTask = document.getElementById('taskSearchInput').value.toLowerCase();
-            const tbody = document.getElementById('taskTableBody');
-            const noRes = document.getElementById('noResultsJunta');
-            tbody.innerHTML = '';
-            
-            const filtered = tasks.filter(t => {
-                const resps = (t.responsible||"").split('-').map(x=>x.trim());
-                const mStat = fStatus === 'all' || (t.status||"").toLowerCase() === fStatus;
-                const mResp = fResp === 'all' || resps.includes(fResp);
-                const mTask = (t.task||"").toLowerCase().includes(qTask);
-                return mStat && mResp && mTask;
+            dataSource.forEach(t => {
+                const timeInfo = getTimeStatus(t.due_date, t.status);
+                tableHtml += `<tr>
+                    <td>${t.id}</td>
+                    <td>${formatDate(t.date)}</td>
+                    <td>${formatDate(t.due_date)}</td>
+                    <td>${(t.task||'').replace(/\n/g, '<br>')}</td>
+                    <td>${t.requester}</td>
+                    <td>${t.responsible}</td>
+                    <td>${(t.status||'').toUpperCase()}</td>
+                    <td>${timeInfo.label}</td>
+                    <td>${formatDate(t.monitoring)}</td>
+                    <td>${(t.detail||'').replace(/\n/g, '<br>')}</td>
+                </tr>`;
             });
+            tableHtml += '</table></body></html>';
 
-            noRes.classList.toggle('hidden', filtered.length > 0);
-
-            filtered.forEach(t => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition-colors group';
-                
-                const respHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 font-medium inline-block max-w-full break-words mb-1">${r}</span><br>` : '').join('');
-                const reqHTML = (t.requester||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-100 font-medium inline-block max-w-full break-words mb-1">${r}</span><br>` : '').join('');
-                
-                let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
-                if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
-                if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
-                if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
-
-                tr.innerHTML = `
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 text-sm font-bold text-slate-600 align-top">${formatDate(t.date)}</td>
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top break-words"><div class="text-sm sm:text-base font-bold text-slate-800 leading-snug">${t.task || "Sin Tarea"}</div></td>
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start">${reqHTML}</div></td>
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start">${respHTML}</div></td>
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top text-center"><span class="px-2 py-1 inline-flex rounded-full text-[10px] font-bold border uppercase tracking-wider ${sClass}">${t.status || "Pendiente"}</span></td>
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 text-right align-top">
-                        <button onclick="openJuntaModal('${t.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Ver Detalles"><i data-lucide="info" class="w-5 h-5"></i></button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-            lucide.createIcons();
-            updateJuntaStats(filtered);
-            updateJuntaChart(filtered);
-        }
-
-        function updateJuntaStats(filtered) {
-            document.getElementById('count-cumplida').textContent = filtered.filter(t => t.status === 'cumplida').length;
-            document.getElementById('count-pendiente').textContent = filtered.filter(t => t.status === 'pendiente').length;
-            document.getElementById('count-proceso').textContent = filtered.filter(t => t.status === 'en proceso').length;
-        }
-
-        function updateJuntaChart(filtered) {
-            const ctx = document.getElementById('statusChart').getContext('2d');
-            const counts = [
-                filtered.filter(t => t.status === 'cumplida').length,
-                filtered.filter(t => t.status === 'pendiente').length,
-                filtered.filter(t => t.status === 'en proceso').length
-            ];
-            const total = counts.reduce((a,b)=>a+b, 0);
-            
-            if (total === 0) {
-                document.getElementById('chartEmptyState').classList.remove('hidden');
-                if(chartInstance) { chartInstance.destroy(); chartInstance = null; }
-                return;
-            } else {
-                document.getElementById('chartEmptyState').classList.add('hidden');
-            }
-
-            if (chartInstance) {
-                chartInstance.data.datasets[0].data = counts;
-                chartInstance.update();
-            } else {
-                chartInstance = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: { labels: ['Cumplida', 'Pendiente', 'En Proceso'], datasets: [{ data: counts, backgroundColor: ['#16a34a', '#dc2626', '#d97706'], borderWidth: 0 }] },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
-                });
-            }
-        }
-
-        // --- Manejo de Pills (Junta) ---
-        function renderPills(type) {
-            const container = document.getElementById(`${type}sContainer`);
-            container.innerHTML = '';
-            pendingPills[type].forEach((name, index) => {
-                const color = type === 'requester' ? 'indigo' : 'blue';
-                const pill = document.createElement('div');
-                pill.className = `flex items-center gap-1 bg-${color}-100 text-${color}-800 px-2 py-1 rounded text-xs font-bold border border-${color}-200`;
-                pill.innerHTML = `<span>${name}</span> <button type="button" onclick="removePill('${type}', ${index})" class="text-${color}-500 hover:text-${color}-900"><i data-lucide="x" class="w-3 h-3"></i></button>`;
-                container.appendChild(pill);
-            });
-            document.getElementById(`formHidden${type.charAt(0).toUpperCase() + type.slice(1)}`).value = pendingPills[type].join(" - ");
-            lucide.createIcons();
-        }
-
-        function addPill(type) {
-            const input = document.getElementById(type === 'requester' ? 'juntaRequesterInput' : 'juntaRespInput');
-            const val = input.value.trim();
-            if (val && !pendingPills[type].includes(val)) {
-                pendingPills[type].push(val);
-                renderPills(type);
-                input.value = '';
-            }
-        }
-        function removePill(type, index) { pendingPills[type].splice(index, 1); renderPills(type); }
-
-        function openJuntaFormModal(id = null) {
-            document.getElementById('activityForm').reset();
-            pendingPills = { requester: [], responsible: [] };
-            renderPills('requester'); renderPills('responsible');
-            document.getElementById('formTitle').textContent = "Agregar Nueva Actividad";
-            document.getElementById('formDate').valueAsDate = new Date();
-            document.getElementById('formTaskId').value = "";
-            
-            if (id) {
-                const t = tasks.find(x => String(x.id) === String(id));
-                if (t) {
-                    document.getElementById('formTitle').textContent = "Editar Actividad";
-                    document.getElementById('formTaskId').value = t.id;
-                    document.getElementById('formDate').value = toInputDate(t.date);
-                    document.getElementById('formStatus').value = t.status || 'pendiente';
-                    document.getElementById('formTask').value = t.task;
-                    document.getElementById('formDriveLink').value = t.image_url;
-                    document.getElementById('formFbLink').value = t.fb_link;
-                    document.getElementById('formDetail').value = t.detail;
-                    
-                    if(t.requester) { pendingPills.requester = t.requester.split('-').map(s=>s.trim()).filter(x=>x); renderPills('requester'); }
-                    if(t.responsible) { pendingPills.responsible = t.responsible.split('-').map(s=>s.trim()).filter(x=>x); renderPills('responsible'); }
-                }
-            }
-            document.getElementById('formActivityModal').classList.remove('hidden-view');
-        }
-
-        async function saveActivity(e) {
-            e.preventDefault();
-            if (pendingPills.requester.length === 0) { showToast("Añade al menos un Solicitante", "error"); return; }
-            if (pendingPills.responsible.length === 0) { showToast("Añade al menos un Responsable", "error"); return; }
-            
-            const fd = new FormData(e.target);
-            const idVal = fd.get('id');
-            const taskData = {
-                date: fd.get('date'), task: fd.get('task'), status: fd.get('status'),
-                requester: document.getElementById('formHiddenRequester').value, 
-                responsible: document.getElementById('formHiddenResponsible').value,
-                image_url: fd.get('image_url'), fb_link: fd.get('fb_link'), detail: fd.get('detail'), monitoring: ""
-            };
-
-            if (idVal) {
-                const idx = tasks.findIndex(t => String(t.id) === String(idVal));
-                if (idx > -1) Object.assign(tasks[idx], taskData);
-            } else {
-                tasks.unshift({ id: `T-${Date.now()}-${Math.floor(Math.random()*1000)}`, ...taskData });
-            }
-            
-            closeModal('formActivityModal');
-            closeModal('taskModal');
-            await saveDataToAPI('junta');
-        }
-
-        function openJuntaModal(id) {
-            const t = tasks.find(x => String(x.id) === String(id));
-            if (!t) return;
-            
-            document.getElementById('modalDesc').textContent = t.task;
-            document.getElementById('modalDate').textContent = formatDate(t.date);
-            document.getElementById('modalMonitoreo').textContent = formatDate(t.monitoring) || "N/A";
-            document.getElementById('modalDetalleAccion').innerText = t.detail || "Sin detalles.";
-            
-            document.getElementById('modalSolicitante').innerHTML = (t.requester||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-medium w-max">${r}</span>` : '').join('');
-            document.getElementById('modalResponsable').innerHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 font-medium w-max">${r}</span>` : '').join('');
-            
-            let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
-            if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
-            if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
-            if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
-            document.getElementById('modalStatusDisplay').innerHTML = `<span class="px-3 py-1 rounded-full font-bold text-xs border uppercase tracking-wider ${sClass}">${t.status}</span>`;
-
-            const fbContainer = document.getElementById('facebookLinkContainer');
-            if (t.fb_link && t.fb_link.trim() !== "") {
-                fbContainer.innerHTML = `
-                    <div class="w-full flex justify-between items-center gap-4">
-                         <div class="flex items-center gap-2 text-blue-800"><i data-lucide="facebook" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Facebook</span></div>
-                         <a href="${t.fb_link}" target="_blank" class="text-xs bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-bold shadow-sm flex items-center gap-2"><span>Abrir</span><i data-lucide="external-link" class="w-3 h-3"></i></a>
-                    </div>`;
-            } else { fbContainer.innerHTML = `<div class="text-center p-4"><i data-lucide="facebook" class="w-8 h-8 mx-auto text-slate-300 mb-1"></i><p class="text-xs text-slate-400">Sin enlace de Facebook.</p><button onclick="closeModal('taskModal'); openJuntaFormModal('${t.id}')" class="mt-1 text-[10px] text-blue-600 font-bold underline">Añadir</button></div>`; }
-
-            const driveContainer = document.getElementById('imageLinkContainer');
-            if (t.image_url && t.image_url.trim() !== "") {
-                 driveContainer.innerHTML = `
-                    <div class="w-full flex justify-between items-center gap-4">
-                         <div class="flex items-center gap-2 text-green-700"><i data-lucide="folder" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Evidencia</span></div>
-                         <a href="${t.image_url}" target="_blank" class="text-xs bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-bold shadow-sm flex items-center gap-2"><span>Abrir</span><i data-lucide="external-link" class="w-3 h-3"></i></a>
-                    </div>`;
-            } else { driveContainer.innerHTML = `<div class="text-center p-4"><i data-lucide="folder-x" class="w-8 h-8 mx-auto text-slate-300 mb-1"></i><p class="text-xs text-slate-400">Sin evidencia en Drive.</p><button onclick="closeModal('taskModal'); openJuntaFormModal('${t.id}')" class="mt-1 text-[10px] text-green-600 font-bold underline">Añadir</button></div>`; }
-
-            document.getElementById('updateTaskId').value = t.id;
-            document.getElementById('updateStatusSelect').value = t.status || 'pendiente';
-            document.getElementById('updateDateInput').valueAsDate = new Date();
-            document.getElementById('updateDescInput').value = '';
-            document.getElementById('updateStatusSection').classList.add('hidden-view');
-
-            document.getElementById('btnEditTask').onclick = () => { closeModal('taskModal'); openJuntaFormModal(t.id); };
-            
-            const btnDelete = document.getElementById('btnDeleteTask');
-            const spanText = btnDelete.querySelector('span');
-            spanText.textContent = "Eliminar";
-            btnDelete.className = "px-4 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all";
-            btnDelete.onclick = async () => {
-                if (spanText.textContent === "¿Confirmar?") {
-                    tasks = tasks.filter(x => String(x.id) !== String(t.id));
-                    closeModal('taskModal');
-                    await saveDataToAPI('junta');
-                } else {
-                    spanText.textContent = "¿Confirmar?";
-                    btnDelete.classList.remove('bg-red-100', 'text-red-700');
-                    btnDelete.classList.add('bg-red-600', 'text-white');
-                }
-            };
-            
-            document.getElementById('btnEmailTask').onclick = () => openEmailModal(t.id);
-
-            document.getElementById('taskModal').classList.remove('hidden-view');
-            lucide.createIcons();
-        }
-
-        function toggleStatusUpdate() { document.getElementById('updateStatusSection').classList.toggle('hidden-view'); }
-
-        async function saveStatusUpdate(e) {
-            e.preventDefault();
-            const taskId = document.getElementById('updateTaskId').value;
-            const newStatus = document.getElementById('updateStatusSelect').value;
-            const newDate = document.getElementById('updateDateInput').value;
-            const desc = document.getElementById('updateDescInput').value;
-            
-            const idx = tasks.findIndex(t => String(t.id) === String(taskId));
-            
-            if (idx !== -1) {
-                tasks[idx].status = newStatus;
-                tasks[idx].monitoring = newDate;
-                const currentDetail = tasks[idx].detail || "";
-                tasks[idx].detail = `[${formatDate(newDate)} - ${newStatus.toUpperCase()}] ${desc}\n${currentDetail}`;
-                
-                closeModal('taskModal');
-                await saveDataToAPI('junta');
-            } else {
-                showToast("Error crítico: No se encontró la ID de la tarea", "error");
-            }
+            const blob = new Blob([tableHtml], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `Reporte_${module.toUpperCase()}_${new Date().toISOString().slice(0,10)}.xls`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         // ==========================================
-        // MÓDULO: SEGUIMIENTO JEFES
-        // ==========================================
-        function populateJefesFilters() {
-            const select = document.getElementById('jefesResponsibleFilter');
-            const current = select.value;
-            select.innerHTML = '<option value="all">Responsable</option>';
-            DEPT_RESPONSIBLES.forEach(name => select.add(new Option(name, name)));
-            select.value = current;
-
-            const dlResp = document.getElementById('responsiblesJefesDatalist'); dlResp.innerHTML = '';
-            DEPT_RESPONSIBLES.forEach(x => dlResp.appendChild(new Option(x)));
-        }
-
-        function renderJefesTasks() {
-            jefesTasks.sort((a, b) => new Date(b.date) - new Date(a.date));
-            const fStatus = document.getElementById('jefesStatusFilter').value;
-            const fResp = document.getElementById('jefesResponsibleFilter').value;
-            const qTask = document.getElementById('jefesTaskSearchInput').value.toLowerCase();
-            const tbody = document.getElementById('jefesTaskTableBody');
-            const noRes = document.getElementById('noResultsJefes');
-            tbody.innerHTML = '';
-            
-            const filtered = jefesTasks.filter(t => {
-                const resps = (t.responsible||"").split('-').map(x=>x.trim());
-                const mStat = fStatus === 'all' || (t.status||"").toLowerCase() === fStatus;
-                const mResp = fResp === 'all' || resps.includes(fResp);
-                const mTask = (t.task||"").toLowerCase().includes(qTask);
-                return mStat && mResp && mTask;
-            });
-
-            noRes.classList.toggle('hidden', filtered.length > 0);
-
-            filtered.forEach(t => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition-colors group';
-                
-                const respHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-100 font-medium inline-block max-w-full break-words mb-1">${r}</span><br>` : '').join('');
-                
-                let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
-                if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
-                if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
-                if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
-
-                tr.innerHTML = `
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 text-sm font-bold text-slate-600 align-top">${formatDate(t.date)}</td>
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top break-words"><div class="text-sm sm:text-base font-bold text-slate-800 leading-snug">${t.task || "Sin Tarea"}</div></td>
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start"><span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 font-bold inline-block max-w-full break-words mb-1">${t.requester || "Iván Javier Flórez"}</span></div></td>
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start">${respHTML}</div></td>
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top text-center"><span class="px-2 py-1 inline-flex rounded-full text-[10px] font-bold border uppercase tracking-wider ${sClass}">${t.status || "Pendiente"}</span></td>
-                    <td class="px-4 py-3 sm:px-6 sm:py-4 text-right align-top">
-                        <button onclick="openJefesModal('${t.id}')" class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-all" title="Ver Detalles"><i data-lucide="info" class="w-5 h-5"></i></button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-            lucide.createIcons();
-            updateJefesStats(filtered);
-            updateJefesChart(filtered);
-        }
-
-        function updateJefesStats(filtered) {
-            document.getElementById('jefes-count-cumplida').textContent = filtered.filter(t => t.status === 'cumplida').length;
-            document.getElementById('jefes-count-pendiente').textContent = filtered.filter(t => t.status === 'pendiente').length;
-            document.getElementById('jefes-count-proceso').textContent = filtered.filter(t => t.status === 'en proceso').length;
-        }
-
-        function updateJefesChart(filtered) {
-            const ctx = document.getElementById('statusChartJefes').getContext('2d');
-            const counts = [
-                filtered.filter(t => t.status === 'cumplida').length,
-                filtered.filter(t => t.status === 'pendiente').length,
-                filtered.filter(t => t.status === 'en proceso').length
-            ];
-            const total = counts.reduce((a,b)=>a+b, 0);
-            
-            if (total === 0) {
-                document.getElementById('chartEmptyStateJefes').classList.remove('hidden');
-                if(chartInstanceJefes) { chartInstanceJefes.destroy(); chartInstanceJefes = null; }
-                return;
-            } else {
-                document.getElementById('chartEmptyStateJefes').classList.add('hidden');
-            }
-
-            if (chartInstanceJefes) {
-                chartInstanceJefes.data.datasets[0].data = counts;
-                chartInstanceJefes.update();
-            } else {
-                chartInstanceJefes = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: { labels: ['Cumplida', 'Pendiente', 'En Proceso'], datasets: [{ data: counts, backgroundColor: ['#16a34a', '#dc2626', '#d97706'], borderWidth: 0 }] },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
-                });
-            }
-        }
-
-        function renderJefesPills() {
-            const container = document.getElementById('responsiblesJefesContainer');
-            container.innerHTML = '';
-            pendingPillsJefes.responsible.forEach((name, index) => {
-                const pill = document.createElement('div');
-                pill.className = `flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-bold border border-purple-200`;
-                pill.innerHTML = `<span>${name}</span> <button type="button" onclick="removeJefesPill(${index})" class="text-purple-500 hover:text-purple-900"><i data-lucide="x" class="w-3 h-3"></i></button>`;
-                container.appendChild(pill);
-            });
-            document.getElementById('formJefesHiddenResponsible').value = pendingPillsJefes.responsible.join(" - ");
-            lucide.createIcons();
-        }
-
-        function addJefesPill() {
-            const input = document.getElementById('jefesRespInput');
-            const val = input.value.trim();
-            if (val && !pendingPillsJefes.responsible.includes(val)) {
-                pendingPillsJefes.responsible.push(val);
-                renderJefesPills();
-                input.value = '';
-            }
-        }
-        function removeJefesPill(index) { pendingPillsJefes.responsible.splice(index, 1); renderJefesPills(); }
-
-        function openJefesFormModal(id = null) {
-            document.getElementById('jefesActivityForm').reset();
-            pendingPillsJefes = { responsible: [] };
-            renderJefesPills();
-            document.getElementById('formJefesTitle').textContent = "Asignar Tarea a Director";
-            document.getElementById('formJefesDate').valueAsDate = new Date();
-            document.getElementById('formJefesTaskId').value = "";
-            document.getElementById('formJefesHiddenRequester').value = "Iván Javier Flórez";
-            
-            if (id) {
-                const t = jefesTasks.find(x => String(x.id) === String(id));
-                if (t) {
-                    document.getElementById('formJefesTitle').textContent = "Editar Tarea";
-                    document.getElementById('formJefesTaskId').value = t.id;
-                    document.getElementById('formJefesDate').value = toInputDate(t.date);
-                    document.getElementById('formJefesStatus').value = t.status || 'pendiente';
-                    document.getElementById('formJefesTask').value = t.task;
-                    document.getElementById('formJefesDriveLink').value = t.image_url;
-                    document.getElementById('formJefesFbLink').value = t.fb_link;
-                    document.getElementById('formJefesDetail').value = t.detail;
-                    
-                    if(t.responsible) { pendingPillsJefes.responsible = t.responsible.split('-').map(s=>s.trim()).filter(x=>x); renderJefesPills(); }
-                }
-            }
-            document.getElementById('formJefesActivityModal').classList.remove('hidden-view');
-        }
-
-        async function saveJefesActivity(e) {
-            e.preventDefault();
-            if (pendingPillsJefes.responsible.length === 0) { showToast("Añade al menos un Director Responsable", "error"); return; }
-            
-            const fd = new FormData(e.target);
-            const idVal = fd.get('id');
-            const taskData = {
-                date: fd.get('date'), task: fd.get('task'), status: fd.get('status'),
-                requester: document.getElementById('formJefesHiddenRequester').value, 
-                responsible: document.getElementById('formJefesHiddenResponsible').value,
-                image_url: fd.get('image_url'), fb_link: fd.get('fb_link'), detail: fd.get('detail'), monitoring: ""
-            };
-
-            if (idVal) {
-                const idx = jefesTasks.findIndex(t => String(t.id) === String(idVal));
-                if (idx > -1) Object.assign(jefesTasks[idx], taskData);
-            } else {
-                jefesTasks.unshift({ id: `T-${Date.now()}-${Math.floor(Math.random()*1000)}`, ...taskData });
-            }
-            
-            closeModal('formJefesActivityModal');
-            closeModal('jefesTaskModal');
-            await saveDataToAPI('jefes');
-        }
-
-        function openJefesModal(id) {
-            const t = jefesTasks.find(x => String(x.id) === String(id));
-            if (!t) return;
-            
-            document.getElementById('modalJefesDesc').textContent = t.task;
-            document.getElementById('modalJefesDate').textContent = formatDate(t.date);
-            document.getElementById('modalJefesMonitoreo').textContent = formatDate(t.monitoring) || "N/A";
-            document.getElementById('modalJefesDetalleAccion').innerText = t.detail || "Sin detalles.";
-            
-            document.getElementById('modalJefesSolicitante').innerHTML = `<span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded border border-slate-200 font-bold w-max">${t.requester || "Iván Javier Flórez"}</span>`;
-            document.getElementById('modalJefesResponsable').innerHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-100 font-medium w-max">${r}</span>` : '').join('');
-            
-            let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
-            if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
-            if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
-            if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
-            document.getElementById('modalJefesStatusDisplay').innerHTML = `<span class="px-3 py-1 rounded-full font-bold text-xs border uppercase tracking-wider ${sClass}">${t.status}</span>`;
-
-            const fbContainer = document.getElementById('jefesFacebookLinkContainer');
-            if (t.fb_link && t.fb_link.trim() !== "") {
-                fbContainer.innerHTML = `
-                    <div class="w-full flex justify-between items-center gap-4">
-                         <div class="flex items-center gap-2 text-blue-800"><i data-lucide="facebook" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Facebook</span></div>
-                         <a href="${t.fb_link}" target="_blank" class="text-xs bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-bold shadow-sm flex items-center gap-2"><span>Abrir</span><i data-lucide="external-link" class="w-3 h-3"></i></a>
-                    </div>`;
-            } else { fbContainer.innerHTML = `<div class="text-center p-4"><i data-lucide="facebook" class="w-8 h-8 mx-auto text-slate-300 mb-1"></i><p class="text-xs text-slate-400">Sin enlace.</p><button onclick="closeModal('jefesTaskModal'); openJefesFormModal('${t.id}')" class="mt-1 text-[10px] text-purple-600 font-bold underline">Añadir</button></div>`; }
-
-            const driveContainer = document.getElementById('jefesImageLinkContainer');
-            if (t.image_url && t.image_url.trim() !== "") {
-                 driveContainer.innerHTML = `
-                    <div class="w-full flex justify-between items-center gap-4">
-                         <div class="flex items-center gap-2 text-green-700"><i data-lucide="folder" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Evidencia</span></div>
-                         <a href="${t.image_url}" target="_blank" class="text-xs bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-bold shadow-sm flex items-center gap-2"><span>Abrir</span><i data-lucide="external-link" class="w-3 h-3"></i></a>
-                    </div>`;
-            } else { driveContainer.innerHTML = `<div class="text-center p-4"><i data-lucide="folder-x" class="w-8 h-8 mx-auto text-slate-300 mb-1"></i><p class="text-xs text-slate-400">Sin evidencia.</p><button onclick="closeModal('jefesTaskModal'); openJefesFormModal('${t.id}')" class="mt-1 text-[10px] text-purple-600 font-bold underline">Añadir</button></div>`; }
-
-            document.getElementById('updateJefesTaskId').value = t.id;
-            document.getElementById('updateJefesStatusSelect').value = t.status || 'pendiente';
-            document.getElementById('updateJefesDateInput').valueAsDate = new Date();
-            document.getElementById('updateJefesDescInput').value = '';
-            document.getElementById('updateJefesStatusSection').classList.add('hidden-view');
-
-            document.getElementById('btnEditJefesTask').onclick = () => { closeModal('jefesTaskModal'); openJefesFormModal(t.id); };
-            
-            const btnDelete = document.getElementById('btnDeleteJefesTask');
-            const spanText = btnDelete.querySelector('span');
-            spanText.textContent = "Eliminar";
-            btnDelete.className = "px-4 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all";
-            btnDelete.onclick = async () => {
-                if (spanText.textContent === "¿Confirmar?") {
-                    jefesTasks = jefesTasks.filter(x => String(x.id) !== String(t.id));
-                    closeModal('jefesTaskModal');
-                    await saveDataToAPI('jefes');
-                } else {
-                    spanText.textContent = "¿Confirmar?";
-                    btnDelete.classList.remove('bg-red-100', 'text-red-700');
-                    btnDelete.classList.add('bg-red-600', 'text-white');
-                }
-            };
-            
-            document.getElementById('btnEmailJefesTask').onclick = () => openEmailModal(t.id, 'jefes');
-
-            document.getElementById('jefesTaskModal').classList.remove('hidden-view');
-            lucide.createIcons();
-        }
-
-        function toggleJefesStatusUpdate() { document.getElementById('updateJefesStatusSection').classList.toggle('hidden-view'); }
-
-        async function saveJefesStatusUpdate(e) {
-            e.preventDefault();
-            const taskId = document.getElementById('updateJefesTaskId').value;
-            const newStatus = document.getElementById('updateJefesStatusSelect').value;
-            const newDate = document.getElementById('updateJefesDateInput').value;
-            const desc = document.getElementById('updateJefesDescInput').value;
-            
-            const idx = jefesTasks.findIndex(t => String(t.id) === String(taskId));
-            
-            if (idx !== -1) {
-                jefesTasks[idx].status = newStatus;
-                jefesTasks[idx].monitoring = newDate;
-                const currentDetail = jefesTasks[idx].detail || "";
-                jefesTasks[idx].detail = `[${formatDate(newDate)} - ${newStatus.toUpperCase()}] ${desc}\n${currentDetail}`;
-                
-                closeModal('jefesTaskModal');
-                await saveDataToAPI('jefes');
-            } else {
-                showToast("Error crítico: No se encontró la ID de la tarea", "error");
-            }
-        }
-
-        // --- SISTEMA DE ENVÍO DE CORREOS CON MODAL ---
-        let currentTaskForEmail = null;
-
-        function openEmailModal(taskId, context = 'junta') {
-            const dataSource = context === 'junta' ? tasks : jefesTasks;
-            const t = dataSource.find(x => String(x.id) === String(taskId));
-            if (!t) return;
-            currentTaskForEmail = t;
-
-            const responsiblesArray = (t.responsible || "").split("-").map(r => r.trim()).filter(r => r);
-            const emails = [];
-            const DIRECTORIO = {
-                "Iván Javier Flórez": "directorejecutivo@ccipiales.org.co",
-                "Iván Javier Flórez Portilla": "directorejecutivo@ccipiales.org.co",
-                "Alexandra Flórez Ortega": "registropublico@ccipiales.org.co",
-                "Jhon Jairo Suárez": "coorproyectos@ccipiales.org.co",
-                "Jesús Andrés Pérez": "capacitacion@ccipiales.org.co",
-                "Jenifer Paguay Goyes": "cenes@ccipiales.org.co",
-                "Jennifer Farneth Paguay": "cenes@ccipiales.org.co",
-                "Alex Gabriel Oviedo": "conciliacion@ccipiales.org.co",
-                "Jenifer Leonela Imbaquí": "contaduria@ccipiales.org.co",
-                "Julio David Jácome": "controlinterno@ccipiales.org.co",
-                "Ingrid Carolina Cárdenas": "secretaria@ccipiales.org.co",
-                "Sandra Patiño Camacho": "administracionfinanciera@ccipiales.org.co" // <--- Agregada aquí
-            };
-            
-            responsiblesArray.forEach(name => {
-                const matchedKey = Object.keys(DIRECTORIO).find(k => k.toLowerCase() === name.toLowerCase());
-                if (matchedKey) emails.push(DIRECTORIO[matchedKey]);
-            });
-
-            document.getElementById('emailTo').value = emails.join(', ');
-            document.getElementById('emailSubject').value = "🔔 Recordatorio de Actividad: " + (t.task.length > 50 ? t.task.substring(0, 50) + "..." : t.task);
-            document.getElementById('emailMessage').value = "";
-            
-            document.getElementById('emailReminderModal').classList.remove('hidden-view');
-            lucide.createIcons();
-        }
-
-        async function submitEmailReminder(e) {
-            e.preventDefault();
-            if (!currentTaskForEmail) return;
-
-            const btn = document.getElementById('btnSubmitEmail');
-            const ogHtml = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Enviando...';
-            lucide.createIcons();
-            btn.disabled = true;
-
-            const payload = {
-                task: currentTaskForEmail,
-                emails: document.getElementById('emailTo').value,
-                subject: document.getElementById('emailSubject').value,
-                message: document.getElementById('emailMessage').value
-            };
-
-            try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ type: 'email_reminder', payload: payload })
-                });
-                const data = await res.json();
-                if(data.status === 'success') {
-                    showToast("Correo enviado exitosamente", "success");
-                    closeModal('emailReminderModal');
-                } else {
-                    showToast(data.message || "Error al enviar correo", "error");
-                }
-            } catch (err) {
-                showToast("Error de conexión al enviar correo", "error");
-            } finally {
-                btn.innerHTML = ogHtml;
-                btn.disabled = false;
-                lucide.createIcons();
-            }
-        }
-
-        // ==========================================
-        // MÓDULO: CALENDARIO DEPARTAMENTOS
-        // ==========================================
-        function populateCalFilters() {
-            const select = document.getElementById('calDeptFilter');
-            const current = select.value;
-            select.innerHTML = '<option value="all">Todas las Áreas</option>';
-            Object.keys(DEPARTAMENTOS).forEach(d => select.add(new Option(d, d)));
-            select.value = current;
-
-            const formDept = document.getElementById('calDept');
-            formDept.innerHTML = '<option value="" disabled selected>Seleccione el departamento...</option>';
-            Object.keys(DEPARTAMENTOS).forEach(d => formDept.add(new Option(d, d)));
-            
-            document.getElementById('calDeptFilter').addEventListener('change', renderCalendar);
-        }
-
-        function changeMonth(dir) { currentDate.setMonth(currentDate.getMonth() + dir); renderCalendar(); }
-        function resetMonth() { currentDate = new Date(); renderCalendar(); }
-
-        function renderCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const filterDept = document.getElementById('calDeptFilter').value;
-            
-            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-            document.getElementById('calendarMonthLabel').textContent = `${monthNames[month]} ${year}`;
-            
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = '';
-            
-            for (let i = 0; i < firstDay; i++) {
-                grid.innerHTML += `<div class="bg-slate-50 opacity-50 p-2 border-r border-b border-slate-200"></div>`;
-            }
-            
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dDate = new Date(year, month, day);
-                const isWeekend = dDate.getDay() === 0 || dDate.getDay() === 6;
-                const dateStr = `${year}-${(month+1).toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
-                const isHoliday = FESTIVOS_COLOMBIA.includes(dateStr);
-                
-                const isToday = (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear());
-                let dayClass = "bg-white p-2 border-r border-b border-slate-200 relative group min-h-[120px] transition-colors";
-                if (isWeekend || isHoliday) dayClass = "bg-slate-100/80 p-2 border-r border-b border-slate-200 relative group min-h-[120px]";
-                
-                let eventsHtml = '';
-                const dayEvents = calendarEvents.filter(e => {
-                    const eDate = toInputDate(e.date);
-                    return eDate === dateStr && (filterDept === 'all' || e.department === filterDept);
-                });
-                
-                const getPeriodWeight = (p) => {
-                    const val = (p || "").toLowerCase();
-                    if (val.includes("todo")) return 1;
-                    if (val.includes("mañana")) return 2;
-                    if (val.includes("tarde")) return 3;
-                    return 4; // Por si hay datos antiguos
-                };
-                
-                dayEvents.sort((a,b) => getPeriodWeight(a.period) - getPeriodWeight(b.period));
-                
-                dayEvents.forEach(ev => {
-                    const cClass = DEPT_COLORS[ev.department] || DEPT_COLORS['DEFAULT'];
-                    eventsHtml += `<div onclick="openCalendarDetail('${ev.id}')" class="mt-1 px-1.5 py-1 ${cClass} rounded text-[10px] font-bold truncate cursor-pointer hover:opacity-80 border shadow-sm" title="${ev.title}">${ev.title}</div>`;
-                });
-
-                grid.innerHTML += `
-                    <div class="${dayClass}">
-                        <div class="flex justify-between items-start">
-                            <span class="text-sm font-bold ${isToday ? 'bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center' : 'text-slate-500'}">${day}</span>
-                            ${isHoliday ? '<i data-lucide="flag" class="w-3 h-3 text-red-400"></i>' : ''}
-                        </div>
-                        <div class="mt-1 flex flex-col gap-1 max-h-[80px] overflow-y-auto custom-scrollbar">${eventsHtml}</div>
-                        <button onclick="openCalendarFormModal(null, '${dateStr}')" class="absolute bottom-2 right-2 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-green-600 shadow-md">
-                            <i data-lucide="plus" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                `;
-            }
-            lucide.createIcons();
-        }
-
-        function updateEventDirector() {
-            const dept = document.getElementById('calDept').value;
-            document.getElementById('calDirector').value = DEPARTAMENTOS[dept] || "";
-        }
-
-        function openCalendarFormModal(id = null, defaultDate = null) {
-            document.getElementById('calendarForm').reset();
-            document.getElementById('calEventId').value = "";
-            document.getElementById('calFormTitle').textContent = "Programar Nuevo Evento";
-            if(defaultDate) document.getElementById('calDate').value = defaultDate;
-            else document.getElementById('calDate').valueAsDate = new Date();
-            
-            if (id) {
-                const ev = calendarEvents.find(x => String(x.id) === String(id));
-                if (ev) {
-                    document.getElementById('calFormTitle').textContent = "Editar Evento";
-                    document.getElementById('calEventId').value = ev.id;
-                    
-                    const deptSelect = document.getElementById('calDept');
-                    const safeDeptValue = (ev.department || '').trim().toLowerCase();
-                    const matchedOption = Array.from(deptSelect.options).find(opt => opt.value.trim().toLowerCase() === safeDeptValue);
-                    if (matchedOption) {
-                        deptSelect.value = matchedOption.value;
-                    } else if (ev.department) {
-                        // Evita que se limpie si el departamento fue editado manualmente en el Sheet con otro nombre/error
-                        deptSelect.add(new Option(ev.department, ev.department));
-                        deptSelect.value = ev.department;
-                    }
-                    
-                    document.getElementById('calDirector').value = ev.director;
-                    document.getElementById('calDate').value = toInputDate(ev.date);
-                    
-                    const periodSelect = document.getElementById('calPeriod');
-                    const safePeriodValue = (ev.period || '').trim().toLowerCase();
-                    let matchedPeriod = Array.from(periodSelect.options).find(opt => opt.value.toLowerCase() === safePeriodValue);
-                    if (matchedPeriod) {
-                        periodSelect.value = matchedPeriod.value;
-                    } else {
-                        periodSelect.value = "Todo el día";
-                    }
-
-                    document.getElementById('calLocation').value = ev.location;
-                    document.getElementById('calTitle').value = ev.title;
-                    document.getElementById('calDesc').value = ev.description;
-                }
-            }
-            document.getElementById('calendarFormModal').classList.remove('hidden-view');
-        }
-
-        async function saveEvent(e) {
-            e.preventDefault();
-            const idVal = document.getElementById('calEventId').value;
-            const date = document.getElementById('calDate').value;
-            const dept = document.getElementById('calDept').value;
-            const period = document.getElementById('calPeriod').value;
-            const title = document.getElementById('calTitle').value;
-
-            const conflict = calendarEvents.find(ev => {
-                if (idVal && String(ev.id) === String(idVal)) return false;
-                if (ev.department !== dept || toInputDate(ev.date) !== date) return false;
-                // Conflictos por jornada: si coinciden, o si uno de los dos es "Todo el día"
-                return (ev.period === period || ev.period === 'Todo el día' || period === 'Todo el día');
-            });
-
-            if (conflict) { showToast(`Cruce de jornada en ${dept} con: ${conflict.title}`, "error"); return; }
-
-            const evData = {
-                date: date, department: dept, director: document.getElementById('calDirector').value,
-                period: period, location: document.getElementById('calLocation').value,
-                title: title, description: document.getElementById('calDesc').value
-            };
-
-            if (idVal) {
-                const idx = calendarEvents.findIndex(x => String(x.id) === String(idVal));
-                if(idx > -1) Object.assign(calendarEvents[idx], evData);
-            } else {
-                calendarEvents.push({ id: `E-${Date.now()}-${Math.floor(Math.random()*1000)}`, ...evData });
-            }
-
-            closeModal('calendarFormModal');
-            if (idVal) closeModal('calendarDetailModal');
-            await saveDataToAPI('calendario');
-        }
-
-        function openCalendarDetail(id) {
-            const ev = calendarEvents.find(x => String(x.id) === String(id));
-            if (!ev) return;
-
-            const cClass = DEPT_COLORS[ev.department] || DEPT_COLORS['DEFAULT'];
-            document.getElementById('calDetailHeader').className = `px-6 py-4 flex items-center justify-between z-20 ${cClass}`;
-            
-            document.getElementById('cdTitle').textContent = ev.title;
-            
-            document.getElementById('cdDateTime').textContent = `${formatDate(ev.date)} - Jornada: ${ev.period || "No definida"}`;
-            
-            document.getElementById('cdLocation').textContent = ev.location || "Por definir";
-            document.getElementById('cdDept').textContent = ev.department;
-            document.getElementById('cdDirector').textContent = ev.director;
-            document.getElementById('cdDesc').textContent = ev.description || "Sin descripción.";
-
-            document.getElementById('btnEditEvent').onclick = () => { 
-                closeModal('calendarDetailModal'); 
-                openCalendarFormModal(ev.id); 
-            };
-
-            document.getElementById('btnDeleteEvent').onclick = async () => {
-                if(confirm("¿Eliminar este evento?")) {
-                    calendarEvents = calendarEvents.filter(x => String(x.id) !== String(ev.id));
-                    closeModal('calendarDetailModal');
-                    await saveDataToAPI('calendario');
-                }
-            };
-            document.getElementById('calendarDetailModal').classList.remove('hidden-view');
-        }
-
-        // ==========================================
-        // MÓDULO: EXPORTACIÓN PDF (Impresión Nativa)
+        // MÓDULO: EXPORTACIÓN PDF
         // ==========================================
         function openPDFRangeModal(module) {
             document.getElementById('pdfModuleType').value = module;
@@ -2079,7 +1264,6 @@
             let tableHeaders = '';
             let tableRows = '';
 
-            // Diccionario para convertir colores Tailwind a colores nativos de impresión
             const getPdfDeptStyle = (dept) => {
                 const styles = {
                     "PRESIDENCIA EJECUTIVA": "background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe;",
@@ -2119,7 +1303,7 @@
                     return d >= sDate && d <= eDate;
                 }).sort((a,b) => new Date(toInputDate(a.date)) - new Date(toInputDate(b.date)));
 
-                tableHeaders = '<tr><th style="width: 10%;">Fecha</th><th style="width: 55%;">Actividad / Tarea</th><th style="width: 10%;">Solicitante</th><th style="width: 10%;">Responsable</th><th style="width: 15%; text-align: center;">Estado</th></tr>';
+                tableHeaders = '<tr><th style="width: 12%;">Fechas</th><th style="width: 48%;">Actividad / Tarea</th><th style="width: 12%;">Solicitante</th><th style="width: 13%;">Responsable</th><th style="width: 15%; text-align: center;">Estado / Plazo</th></tr>';
                 tableRows = filtered.map(t => {
                     let statusClass = 'pill-default';
                     let statusText = (t.status || 'pendiente').toUpperCase();
@@ -2127,15 +1311,22 @@
                     else if (t.status === 'en proceso') statusClass = 'pill-proceso';
                     else if (t.status === 'pendiente') statusClass = 'pill-pendiente';
 
+                    const timeInfo = getTimeStatus(t.due_date, t.status);
                     const reqHtml = (t.requester||"").split('-').map(r => r.trim() ? `<div>${r}</div>` : '').join('');
                     const respHtml = (t.responsible||"").split('-').map(r => r.trim() ? `<div>${r}</div>` : '').join('');
 
                     return `<tr>
-                        <td style="white-space: nowrap;">${formatDate(t.date)}</td>
+                        <td style="white-space: nowrap;">
+                            <strong>Asig:</strong> ${formatDate(t.date)}<br>
+                            <span style="font-size: 10px; color: #6b21a8; font-weight:bold;">Lím: ${formatDate(t.due_date) || 'S/D'}</span>
+                        </td>
                         <td>${t.task}</td>
                         <td>${reqHtml}</td>
                         <td>${respHtml}</td>
-                        <td style="text-align: center;"><span class="pill ${statusClass}">${statusText}</span></td>
+                        <td style="text-align: center;">
+                            <span class="pill ${statusClass}" style="margin-bottom: 6px;">${statusText}</span><br>
+                            <span style="font-size: 9px; font-weight: bold; color: ${timeInfo.pdfColor}; text-transform: uppercase;">(${timeInfo.label})</span>
+                        </td>
                     </tr>`;
                 }).join('');
             }
@@ -2190,7 +1381,7 @@
 
                 <table>
                     <thead>${tableHeaders}</thead>
-                    <tbody>${tableRows.length > 0 ? tableRows : `<tr><td colspan="${module === 'calendario' ? 5 : 5}" style="text-align:center; padding: 20px;">No se encontraron registros en este periodo.</td></tr>`}</tbody>
+                    <tbody>${tableRows.length > 0 ? tableRows : `<tr><td colspan="5" style="text-align:center; padding: 20px;">No se encontraron registros en este periodo.</td></tr>`}</tbody>
                 </table>
 
                 <div class="footer">
@@ -2204,23 +1395,817 @@
             printWindow.document.close();
         }
 
+        // ==========================================
+        // JUNTA DIRECTIVA
+        // ==========================================
+        function populateJuntaFilters() {
+            const select = document.getElementById('responsibleFilter');
+            const current = select.value;
+            select.innerHTML = '<option value="all">Responsable</option>';
+            DEPT_RESPONSIBLES.forEach(name => select.add(new Option(name, name)));
+            select.value = current;
+
+            const dlReq = document.getElementById('requestersDatalist'); dlReq.innerHTML = '';
+            BOARD_MEMBERS.forEach(x => dlReq.appendChild(new Option(x)));
+            const dlResp = document.getElementById('responsiblesDatalist'); dlResp.innerHTML = '';
+            DEPT_RESPONSIBLES.forEach(x => dlResp.appendChild(new Option(x)));
+        }
+
+        function renderTasks() {
+            tasks.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const fStatus = document.getElementById('statusFilter').value;
+            const fResp = document.getElementById('responsibleFilter').value;
+            const fTime = document.getElementById('juntaTimeFilter').value;
+            const qTask = document.getElementById('taskSearchInput').value.toLowerCase();
+            const tbody = document.getElementById('taskTableBody');
+            const noRes = document.getElementById('noResultsJunta');
+            tbody.innerHTML = '';
+            
+            const filtered = tasks.filter(t => {
+                const resps = (t.responsible||"").split('-').map(x=>x.trim());
+                const mStat = fStatus === 'all' || (t.status||"").toLowerCase() === fStatus;
+                const mResp = fResp === 'all' || resps.includes(fResp);
+                const mTask = (t.task||"").toLowerCase().includes(qTask);
+                
+                const timeInfo = getTimeStatus(t.due_date, t.status);
+                const mTime = fTime === 'all' || timeInfo.code === fTime;
+
+                return mStat && mResp && mTask && mTime;
+            });
+
+            noRes.classList.toggle('hidden', filtered.length > 0);
+
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors group';
+                
+                const respHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 font-medium inline-block max-w-full break-words mb-1">${r}</span><br>` : '').join('');
+                const reqHTML = (t.requester||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-100 font-medium inline-block max-w-full break-words mb-1">${r}</span><br>` : '').join('');
+                
+                let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
+                if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
+
+                const timeInfo = getTimeStatus(t.due_date, t.status);
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top">
+                        <div class="text-xs font-bold text-slate-600">Asig: ${formatDate(t.date)}</div>
+                        <div class="text-xs font-bold text-blue-800 mt-1 flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3 h-3"></i> Lím: ${formatDate(t.due_date) || 'S/D'}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top break-words"><div class="text-sm sm:text-base font-bold text-slate-800 leading-snug">${t.task || "Sin Tarea"}</div></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start">${reqHTML}</div></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start">${respHTML}</div></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top text-center">
+                        <div class="flex flex-col items-center gap-1.5">
+                            <span class="px-2 py-0.5 inline-flex rounded-full text-[10px] font-bold border uppercase tracking-wider ${sClass}">${t.status || "Pendiente"}</span>
+                            <span class="px-2 py-0.5 rounded text-[9px] font-black border uppercase tracking-wider ${timeInfo.badgeClass}">${timeInfo.label}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 text-right align-top">
+                        <button onclick="openJuntaModal('${t.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Ver Detalles"><i data-lucide="info" class="w-5 h-5"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+            updateJuntaStats(filtered);
+            updateJuntaChart(filtered);
+        }
+
+        function updateJuntaStats(filtered) {
+            document.getElementById('count-cumplida').textContent = filtered.filter(t => t.status === 'cumplida').length;
+            document.getElementById('count-pendiente').textContent = filtered.filter(t => t.status === 'pendiente').length;
+            document.getElementById('count-proceso').textContent = filtered.filter(t => t.status === 'en proceso').length;
+        }
+
+        function updateJuntaChart(filtered) {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            const counts = [
+                filtered.filter(t => t.status === 'cumplida').length,
+                filtered.filter(t => t.status === 'pendiente').length,
+                filtered.filter(t => t.status === 'en proceso').length
+            ];
+            const total = counts.reduce((a,b)=>a+b, 0);
+            
+            if (total === 0) {
+                document.getElementById('chartEmptyState').classList.remove('hidden');
+                if(chartInstance) { chartInstance.destroy(); chartInstance = null; }
+                return;
+            } else {
+                document.getElementById('chartEmptyState').classList.add('hidden');
+            }
+
+            if (chartInstance) {
+                chartInstance.data.datasets[0].data = counts; chartInstance.update();
+            } else {
+                chartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: ['Cumplida', 'Pendiente', 'En Proceso'], datasets: [{ data: counts, backgroundColor: ['#16a34a', '#dc2626', '#d97706'], borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
+                });
+            }
+        }
+
+        function renderPills(type) {
+            const container = document.getElementById(`${type}sContainer`);
+            container.innerHTML = '';
+            pendingPills[type].forEach((name, index) => {
+                const color = type === 'requester' ? 'indigo' : 'blue';
+                const pill = document.createElement('div');
+                pill.className = `flex items-center gap-1 bg-${color}-100 text-${color}-800 px-2 py-1 rounded text-xs font-bold border border-${color}-200`;
+                pill.innerHTML = `<span>${name}</span> <button type="button" onclick="removePill('${type}', ${index})" class="text-${color}-500 hover:text-${color}-900"><i data-lucide="x" class="w-3 h-3"></i></button>`;
+                container.appendChild(pill);
+            });
+            document.getElementById(`formHidden${type.charAt(0).toUpperCase() + type.slice(1)}`).value = pendingPills[type].join(" - ");
+            lucide.createIcons();
+        }
+
+        function addPill(type) {
+            const input = document.getElementById(type === 'requester' ? 'juntaRequesterInput' : 'juntaRespInput');
+            const val = input.value.trim();
+            if (val && !pendingPills[type].includes(val)) {
+                pendingPills[type].push(val); renderPills(type); input.value = '';
+            }
+        }
+        function removePill(type, index) { pendingPills[type].splice(index, 1); renderPills(type); }
+
+        function openJuntaFormModal(id = null) {
+            document.getElementById('activityForm').reset();
+            pendingPills = { requester: [], responsible: [] };
+            renderPills('requester'); renderPills('responsible');
+            document.getElementById('formTitle').textContent = "Agregar Nueva Actividad";
+            document.getElementById('formDate').valueAsDate = new Date();
+            
+            const nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 7);
+            document.getElementById('formDueDate').valueAsDate = nextWeek;
+            
+            document.getElementById('formTaskId').value = "";
+            
+            if (id) {
+                const t = tasks.find(x => String(x.id) === String(id));
+                if (t) {
+                    document.getElementById('formTitle').textContent = "Editar Actividad";
+                    document.getElementById('formTaskId').value = t.id;
+                    document.getElementById('formDate').value = toInputDate(t.date);
+                    document.getElementById('formDueDate').value = toInputDate(t.due_date);
+                    document.getElementById('formStatus').value = t.status || 'pendiente';
+                    document.getElementById('formTask').value = t.task;
+                    document.getElementById('formDriveLink').value = t.image_url;
+                    document.getElementById('formFbLink').value = t.fb_link;
+                    document.getElementById('formDetail').value = t.detail;
+                    if(t.requester) { pendingPills.requester = t.requester.split('-').map(s=>s.trim()).filter(x=>x); renderPills('requester'); }
+                    if(t.responsible) { pendingPills.responsible = t.responsible.split('-').map(s=>s.trim()).filter(x=>x); renderPills('responsible'); }
+                }
+            }
+            document.getElementById('formActivityModal').classList.remove('hidden-view');
+        }
+
+        async function saveActivity(e) {
+            e.preventDefault();
+            if (pendingPills.requester.length === 0) { showToast("Añade al menos un Solicitante", "error"); return; }
+            if (pendingPills.responsible.length === 0) { showToast("Añade al menos un Responsable", "error"); return; }
+            
+            const fd = new FormData(e.target);
+            const idVal = fd.get('id');
+            const taskData = {
+                date: fd.get('date'), due_date: fd.get('due_date'), task: fd.get('task'), status: fd.get('status'),
+                requester: document.getElementById('formHiddenRequester').value, 
+                responsible: document.getElementById('formHiddenResponsible').value,
+                image_url: fd.get('image_url'), fb_link: fd.get('fb_link'), detail: fd.get('detail'), monitoring: ""
+            };
+
+            if (idVal) {
+                const idx = tasks.findIndex(t => String(t.id) === String(idVal));
+                if (idx > -1) Object.assign(tasks[idx], taskData);
+            } else {
+                tasks.unshift({ id: `T-${Date.now()}-${Math.floor(Math.random()*1000)}`, ...taskData });
+            }
+            
+            closeModal('formActivityModal'); closeModal('taskModal');
+            await saveDataToAPI('junta');
+        }
+
+        function openJuntaModal(id) {
+            const t = tasks.find(x => String(x.id) === String(id));
+            if (!t) return;
+            
+            document.getElementById('modalDesc').textContent = t.task;
+            document.getElementById('modalDate').textContent = formatDate(t.date);
+            document.getElementById('modalDueDate').textContent = formatDate(t.due_date) || "Sin fecha";
+            document.getElementById('modalMonitoreo').textContent = formatDate(t.monitoring) || "N/A";
+            document.getElementById('modalDetalleAccion').innerText = t.detail || "Sin detalles.";
+            
+            document.getElementById('modalSolicitante').innerHTML = (t.requester||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-medium w-max">${r}</span>` : '').join('');
+            document.getElementById('modalResponsable').innerHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 font-medium w-max">${r}</span>` : '').join('');
+            
+            let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
+            if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
+            if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
+            if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
+
+            const timeInfo = getTimeStatus(t.due_date, t.status);
+
+            document.getElementById('modalStatusDisplay').innerHTML = `
+                <span class="px-3 py-1 rounded-full font-bold text-xs border uppercase tracking-wider ${sClass}">${t.status}</span>
+                <span class="px-2.5 py-1 rounded text-xs font-black border uppercase tracking-wider ${timeInfo.badgeClass}">${timeInfo.label}</span>
+            `;
+
+            const fbContainer = document.getElementById('facebookLinkContainer');
+            if (t.fb_link && t.fb_link.trim() !== "") {
+                fbContainer.innerHTML = `<div class="w-full flex justify-between items-center gap-4"><div class="flex items-center gap-2 text-blue-800"><i data-lucide="facebook" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Facebook</span></div><a href="${t.fb_link}" target="_blank" class="text-xs bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-bold shadow-sm flex items-center gap-2"><span>Abrir</span><i data-lucide="external-link" class="w-3 h-3"></i></a></div>`;
+            } else { fbContainer.innerHTML = `<div class="text-center p-4"><i data-lucide="facebook" class="w-8 h-8 mx-auto text-slate-300 mb-1"></i><p class="text-xs text-slate-400">Sin enlace.</p></div>`; }
+
+            const driveContainer = document.getElementById('imageLinkContainer');
+            if (t.image_url && t.image_url.trim() !== "") {
+                 driveContainer.innerHTML = `<div class="w-full flex justify-between items-center gap-4"><div class="flex items-center gap-2 text-green-700"><i data-lucide="folder" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Evidencia</span></div><a href="${t.image_url}" target="_blank" class="text-xs bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-bold shadow-sm flex items-center gap-2"><span>Abrir</span><i data-lucide="external-link" class="w-3 h-3"></i></a></div>`;
+            } else { driveContainer.innerHTML = `<div class="text-center p-4"><i data-lucide="folder-x" class="w-8 h-8 mx-auto text-slate-300 mb-1"></i><p class="text-xs text-slate-400">Sin evidencia.</p></div>`; }
+
+            document.getElementById('updateTaskId').value = t.id;
+            document.getElementById('updateStatusSelect').value = t.status || 'pendiente';
+            document.getElementById('updateDateInput').valueAsDate = new Date();
+            document.getElementById('updateDescInput').value = '';
+            document.getElementById('updateStatusSection').classList.add('hidden-view');
+
+            document.getElementById('btnEditTask').onclick = () => { closeModal('taskModal'); openJuntaFormModal(t.id); };
+            
+            const btnDelete = document.getElementById('btnDeleteTask');
+            const spanText = btnDelete.querySelector('span');
+            spanText.textContent = "Eliminar";
+            btnDelete.onclick = async () => {
+                if (spanText.textContent === "¿Confirmar?") {
+                    tasks = tasks.filter(x => String(x.id) !== String(t.id));
+                    closeModal('taskModal'); await saveDataToAPI('junta');
+                } else { spanText.textContent = "¿Confirmar?"; }
+            };
+            
+            document.getElementById('btnEmailTask').onclick = () => openEmailModal(t.id, 'junta');
+            document.getElementById('taskModal').classList.remove('hidden-view');
+            lucide.createIcons();
+        }
+
+        function toggleStatusUpdate() { document.getElementById('updateStatusSection').classList.toggle('hidden-view'); }
+
+        async function saveStatusUpdate(e) {
+            e.preventDefault();
+            const taskId = document.getElementById('updateTaskId').value;
+            const newStatus = document.getElementById('updateStatusSelect').value;
+            const newDate = document.getElementById('updateDateInput').value;
+            const desc = document.getElementById('updateDescInput').value;
+            
+            const idx = tasks.findIndex(t => String(t.id) === String(taskId));
+            if (idx !== -1) {
+                tasks[idx].status = newStatus;
+                tasks[idx].monitoring = newDate;
+                tasks[idx].detail = `[${formatDate(newDate)} - ${newStatus.toUpperCase()}] ${desc}\n${tasks[idx].detail || ""}`;
+                closeModal('taskModal'); await saveDataToAPI('junta');
+            }
+        }
+
+        // ==========================================
+        // MÓDULO: SEGUIMIENTO JEFES
+        // ==========================================
+        function populateJefesFilters() {
+            const select = document.getElementById('jefesResponsibleFilter');
+            const current = select.value;
+            select.innerHTML = '<option value="all">Responsable</option>';
+            DEPT_RESPONSIBLES.forEach(name => select.add(new Option(name, name)));
+            select.value = current;
+
+            const dlResp = document.getElementById('responsiblesJefesDatalist'); dlResp.innerHTML = '';
+            DEPT_RESPONSIBLES.forEach(x => dlResp.appendChild(new Option(x)));
+        }
+
+        function renderJefesTasks() {
+            jefesTasks.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const fStatus = document.getElementById('jefesStatusFilter').value;
+            const fResp = document.getElementById('jefesResponsibleFilter').value;
+            const fTime = document.getElementById('jefesTimeFilter').value;
+            const qTask = document.getElementById('jefesTaskSearchInput').value.toLowerCase();
+            const tbody = document.getElementById('jefesTaskTableBody');
+            const noRes = document.getElementById('noResultsJefes');
+            tbody.innerHTML = '';
+            
+            const filtered = jefesTasks.filter(t => {
+                const resps = (t.responsible||"").split('-').map(x=>x.trim());
+                const mStat = fStatus === 'all' || (t.status||"").toLowerCase() === fStatus;
+                const mResp = fResp === 'all' || resps.includes(fResp);
+                const mTask = (t.task||"").toLowerCase().includes(qTask);
+                
+                const timeInfo = getTimeStatus(t.due_date, t.status);
+                const mTime = fTime === 'all' || timeInfo.code === fTime;
+
+                return mStat && mResp && mTask && mTime;
+            });
+
+            noRes.classList.toggle('hidden', filtered.length > 0);
+
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors group';
+                
+                const respHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-100 font-medium inline-block max-w-full break-words mb-1">${r}</span><br>` : '').join('');
+                
+                let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
+                if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
+
+                const timeInfo = getTimeStatus(t.due_date, t.status);
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top">
+                        <div class="text-xs font-bold text-slate-600">Asig: ${formatDate(t.date)}</div>
+                        <div class="text-xs font-bold text-purple-800 mt-1 flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3 h-3"></i> Lím: ${formatDate(t.due_date) || 'S/D'}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top break-words"><div class="text-sm font-bold text-slate-800 leading-snug">${t.task || "Sin Tarea"}</div></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 font-bold">${t.requester || "Iván Javier Flórez"}</span></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top"><div class="flex flex-col items-start">${respHTML}</div></td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 align-top text-center">
+                        <div class="flex flex-col items-center gap-1.5">
+                            <span class="px-2 py-0.5 inline-flex rounded-full text-[10px] font-bold border uppercase tracking-wider ${sClass}">${t.status || "Pendiente"}</span>
+                            <span class="px-2 py-0.5 rounded text-[9px] font-black border uppercase tracking-wider ${timeInfo.badgeClass}">${timeInfo.label}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 sm:px-6 sm:py-4 text-right align-top">
+                        <button onclick="openJefesModal('${t.id}')" class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-all"><i data-lucide="info" class="w-5 h-5"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+            updateJefesStats(filtered);
+            updateJefesChart(filtered);
+        }
+
+        function updateJefesStats(filtered) {
+            document.getElementById('jefes-count-cumplida').textContent = filtered.filter(t => t.status === 'cumplida').length;
+            document.getElementById('jefes-count-pendiente').textContent = filtered.filter(t => t.status === 'pendiente').length;
+            document.getElementById('jefes-count-proceso').textContent = filtered.filter(t => t.status === 'en proceso').length;
+        }
+
+        function updateJefesChart(filtered) {
+            const ctx = document.getElementById('statusChartJefes').getContext('2d');
+            const counts = [
+                filtered.filter(t => t.status === 'cumplida').length,
+                filtered.filter(t => t.status === 'pendiente').length,
+                filtered.filter(t => t.status === 'en proceso').length
+            ];
+            const total = counts.reduce((a,b)=>a+b, 0);
+            
+            if (total === 0) {
+                document.getElementById('chartEmptyStateJefes').classList.remove('hidden');
+                if(chartInstanceJefes) { chartInstanceJefes.destroy(); chartInstanceJefes = null; }
+                return;
+            } else {
+                document.getElementById('chartEmptyStateJefes').classList.add('hidden');
+            }
+
+            if (chartInstanceJefes) {
+                chartInstanceJefes.data.datasets[0].data = counts; chartInstanceJefes.update();
+            } else {
+                chartInstanceJefes = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: ['Cumplida', 'Pendiente', 'En Proceso'], datasets: [{ data: counts, backgroundColor: ['#16a34a', '#dc2626', '#d97706'], borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
+                });
+            }
+        }
+
+        function renderJefesPills() {
+            const container = document.getElementById('responsiblesJefesContainer');
+            container.innerHTML = '';
+            pendingPillsJefes.responsible.forEach((name, index) => {
+                const pill = document.createElement('div');
+                pill.className = `flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-bold border border-purple-200`;
+                pill.innerHTML = `<span>${name}</span> <button type="button" onclick="removeJefesPill(${index})" class="text-purple-500 hover:text-purple-900"><i data-lucide="x" class="w-3 h-3"></i></button>`;
+                container.appendChild(pill);
+            });
+            document.getElementById('formJefesHiddenResponsible').value = pendingPillsJefes.responsible.join(" - ");
+            lucide.createIcons();
+        }
+
+        function addJefesPill() {
+            const input = document.getElementById('jefesRespInput');
+            const val = input.value.trim();
+            if (val && !pendingPillsJefes.responsible.includes(val)) {
+                pendingPillsJefes.responsible.push(val); renderJefesPills(); input.value = '';
+            }
+        }
+        function removeJefesPill(index) { pendingPillsJefes.responsible.splice(index, 1); renderJefesPills(); }
+
+        function openJefesFormModal(id = null) {
+            document.getElementById('jefesActivityForm').reset();
+            pendingPillsJefes = { responsible: [] };
+            renderJefesPills();
+            document.getElementById('formJefesTitle').textContent = "Asignar Tarea a Director";
+            document.getElementById('formJefesDate').valueAsDate = new Date();
+            
+            const nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 7);
+            document.getElementById('formJefesDueDate').valueAsDate = nextWeek;
+            
+            document.getElementById('formJefesTaskId').value = "";
+            document.getElementById('formJefesHiddenRequester').value = "Iván Javier Flórez";
+            
+            if (id) {
+                const t = jefesTasks.find(x => String(x.id) === String(id));
+                if (t) {
+                    document.getElementById('formJefesTitle').textContent = "Editar Tarea";
+                    document.getElementById('formJefesTaskId').value = t.id;
+                    document.getElementById('formJefesDate').value = toInputDate(t.date);
+                    document.getElementById('formJefesDueDate').value = toInputDate(t.due_date);
+                    document.getElementById('formJefesStatus').value = t.status || 'pendiente';
+                    document.getElementById('formJefesTask').value = t.task;
+                    document.getElementById('formJefesDriveLink').value = t.image_url;
+                    document.getElementById('formJefesFbLink').value = t.fb_link;
+                    document.getElementById('formJefesDetail').value = t.detail;
+                    if(t.responsible) { pendingPillsJefes.responsible = t.responsible.split('-').map(s=>s.trim()).filter(x=>x); renderJefesPills(); }
+                }
+            }
+            document.getElementById('formJefesActivityModal').classList.remove('hidden-view');
+        }
+
+        async function saveJefesActivity(e) {
+            e.preventDefault();
+            if (pendingPillsJefes.responsible.length === 0) { showToast("Añade al menos un Director Responsable", "error"); return; }
+            
+            const fd = new FormData(e.target);
+            const idVal = fd.get('id');
+            const taskData = {
+                date: fd.get('date'), due_date: fd.get('due_date'), task: fd.get('task'), status: fd.get('status'),
+                requester: document.getElementById('formJefesHiddenRequester').value, 
+                responsible: document.getElementById('formJefesHiddenResponsible').value,
+                image_url: fd.get('image_url'), fb_link: fd.get('fb_link'), detail: fd.get('detail'), monitoring: ""
+            };
+
+            if (idVal) {
+                const idx = jefesTasks.findIndex(t => String(t.id) === String(idVal));
+                if (idx > -1) Object.assign(jefesTasks[idx], taskData);
+            } else {
+                jefesTasks.unshift({ id: `T-${Date.now()}-${Math.floor(Math.random()*1000)}`, ...taskData });
+            }
+            
+            closeModal('formJefesActivityModal'); closeModal('jefesTaskModal');
+            await saveDataToAPI('jefes');
+        }
+
+        function openJefesModal(id) {
+            const t = jefesTasks.find(x => String(x.id) === String(id));
+            if (!t) return;
+            
+            document.getElementById('modalJefesDesc').textContent = t.task;
+            document.getElementById('modalJefesDate').textContent = formatDate(t.date);
+            document.getElementById('modalJefesDueDate').textContent = formatDate(t.due_date) || "Sin fecha";
+            document.getElementById('modalJefesMonitoreo').textContent = formatDate(t.monitoring) || "N/A";
+            document.getElementById('modalJefesDetalleAccion').innerText = t.detail || "Sin detalles.";
+            
+            document.getElementById('modalJefesSolicitante').innerHTML = `<span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded border border-slate-200 font-bold w-max">${t.requester || "Iván Javier Flórez"}</span>`;
+            document.getElementById('modalJefesResponsable').innerHTML = (t.responsible||"").split('-').map(r => r.trim() ? `<span class="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-100 font-medium w-max">${r}</span>` : '').join('');
+            
+            let sClass = 'bg-slate-100 text-slate-700 border-slate-200';
+            if(t.status === 'cumplida') sClass = 'bg-green-100 text-green-700 border-green-200';
+            if(t.status === 'en proceso') sClass = 'bg-amber-100 text-amber-700 border-amber-200';
+            if(t.status === 'pendiente') sClass = 'bg-red-100 text-red-700 border-red-200';
+
+            const timeInfo = getTimeStatus(t.due_date, t.status);
+
+            document.getElementById('modalJefesStatusDisplay').innerHTML = `
+                <span class="px-3 py-1 rounded-full font-bold text-xs border uppercase tracking-wider ${sClass}">${t.status}</span>
+                <span class="px-2.5 py-1 rounded text-xs font-black border uppercase tracking-wider ${timeInfo.badgeClass}">${timeInfo.label}</span>
+            `;
+
+            const fbContainer = document.getElementById('jefesFacebookLinkContainer');
+            if (t.fb_link && t.fb_link.trim() !== "") {
+                fbContainer.innerHTML = `<div class="w-full flex justify-between items-center gap-4"><div class="flex items-center gap-2 text-blue-800"><i data-lucide="facebook" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Facebook</span></div><a href="${t.fb_link}" target="_blank" class="text-xs bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-bold shadow-sm flex items-center gap-2"><span>Abrir</span><i data-lucide="external-link" class="w-3 h-3"></i></a></div>`;
+            } else { fbContainer.innerHTML = `<div class="text-center p-4"><i data-lucide="facebook" class="w-8 h-8 mx-auto text-slate-300 mb-1"></i><p class="text-xs text-slate-400">Sin enlace.</p></div>`; }
+
+            const driveContainer = document.getElementById('jefesImageLinkContainer');
+            if (t.image_url && t.image_url.trim() !== "") {
+                 driveContainer.innerHTML = `<div class="w-full flex justify-between items-center gap-4"><div class="flex items-center gap-2 text-green-700"><i data-lucide="folder" class="w-5 h-5"></i><span class="text-sm font-bold truncate max-w-[200px]">Evidencia</span></div><a href="${t.image_url}" target="_blank" class="text-xs bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-bold shadow-sm flex items-center gap-2"><span>Abrir</span><i data-lucide="external-link" class="w-3 h-3"></i></a></div>`;
+            } else { driveContainer.innerHTML = `<div class="text-center p-4"><i data-lucide="folder-x" class="w-8 h-8 mx-auto text-slate-300 mb-1"></i><p class="text-xs text-slate-400">Sin evidencia.</p></div>`; }
+
+            document.getElementById('updateJefesTaskId').value = t.id;
+            document.getElementById('updateJefesStatusSelect').value = t.status || 'pendiente';
+            document.getElementById('updateJefesDateInput').valueAsDate = new Date();
+            document.getElementById('updateJefesDescInput').value = '';
+            document.getElementById('updateJefesStatusSection').classList.add('hidden-view');
+
+            document.getElementById('btnEditJefesTask').onclick = () => { closeModal('jefesTaskModal'); openJefesFormModal(t.id); };
+            
+            const btnDelete = document.getElementById('btnDeleteJefesTask');
+            const spanText = btnDelete.querySelector('span');
+            spanText.textContent = "Eliminar";
+            btnDelete.onclick = async () => {
+                if (spanText.textContent === "¿Confirmar?") {
+                    jefesTasks = jefesTasks.filter(x => String(x.id) !== String(t.id));
+                    closeModal('jefesTaskModal'); await saveDataToAPI('jefes');
+                } else { spanText.textContent = "¿Confirmar?"; }
+            };
+            
+            document.getElementById('btnEmailJefesTask').onclick = () => openEmailModal(t.id, 'jefes');
+            document.getElementById('jefesTaskModal').classList.remove('hidden-view');
+            lucide.createIcons();
+        }
+
+        function toggleJefesStatusUpdate() { document.getElementById('updateJefesStatusSection').classList.toggle('hidden-view'); }
+
+        async function saveJefesStatusUpdate(e) {
+            e.preventDefault();
+            const taskId = document.getElementById('updateJefesTaskId').value;
+            const newStatus = document.getElementById('updateJefesStatusSelect').value;
+            const newDate = document.getElementById('updateJefesDateInput').value;
+            const desc = document.getElementById('updateJefesDescInput').value;
+            
+            const idx = jefesTasks.findIndex(t => String(t.id) === String(taskId));
+            if (idx !== -1) {
+                jefesTasks[idx].status = newStatus;
+                jefesTasks[idx].monitoring = newDate;
+                jefesTasks[idx].detail = `[${formatDate(newDate)} - ${newStatus.toUpperCase()}] ${desc}\n${jefesTasks[idx].detail || ""}`;
+                closeModal('jefesTaskModal'); await saveDataToAPI('jefes');
+            }
+        }
+
+        // ==========================================
+        // SISTEMA DE CORREOS
+        // ==========================================
+        let currentTaskForEmail = null;
+
+        function openEmailModal(taskId, context = 'junta') {
+            const dataSource = context === 'junta' ? tasks : jefesTasks;
+            const t = dataSource.find(x => String(x.id) === String(taskId));
+            if (!t) return;
+            currentTaskForEmail = t;
+
+            const responsiblesArray = (t.responsible || "").split("-").map(r => r.trim()).filter(r => r);
+            const emails = [];
+            const DIRECTORIO = {
+                "Iván Javier Flórez": "directorejecutivo@ccipiales.org.co",
+                "Alexandra Flórez Ortega": "registropublico@ccipiales.org.co",
+                "Jhon Jairo Suárez": "coorproyectos@ccipiales.org.co",
+                "Jesús Andrés Pérez": "capacitacion@ccipiales.org.co",
+                "Jenifer Paguay Goyes": "cenes@ccipiales.org.co",
+                "Alex Gabriel Oviedo": "conciliacion@ccipiales.org.co",
+                "Jenifer Leonela Imbaquí": "contaduria@ccipiales.org.co",
+                "Julio David Jácome": "controlinterno@ccipiales.org.co",
+                "Ingrid Carolina Cárdenas": "secretaria@ccipiales.org.co",
+                "Sandra Patiño Camacho": "administracionfinanciera@ccipiales.org.co"
+            };
+            
+            responsiblesArray.forEach(name => {
+                const matchedKey = Object.keys(DIRECTORIO).find(k => k.toLowerCase() === name.toLowerCase());
+                if (matchedKey) emails.push(DIRECTORIO[matchedKey]);
+            });
+
+            document.getElementById('emailTo').value = emails.join(', ');
+            document.getElementById('emailSubject').value = "🔔 Recordatorio de Actividad: " + (t.task.length > 50 ? t.task.substring(0, 50) + "..." : t.task);
+            document.getElementById('emailMessage').value = "";
+            document.getElementById('emailReminderModal').classList.remove('hidden-view');
+            lucide.createIcons();
+        }
+
+        async function submitEmailReminder(e) {
+            e.preventDefault();
+            if (!currentTaskForEmail) return;
+
+            const btn = document.getElementById('btnSubmitEmail');
+            const ogHtml = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Enviando...';
+            lucide.createIcons(); btn.disabled = true;
+
+            const payload = {
+                task: currentTaskForEmail,
+                emails: document.getElementById('emailTo').value,
+                subject: document.getElementById('emailSubject').value,
+                message: document.getElementById('emailMessage').value
+            };
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ type: 'email_reminder', payload: payload })
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    showToast("Correo enviado exitosamente", "success");
+                    closeModal('emailReminderModal');
+                } else { showToast(data.message || "Error al enviar correo", "error"); }
+            } catch (err) { showToast("Error de conexión al enviar correo", "error"); } 
+            finally { btn.innerHTML = ogHtml; btn.disabled = false; lucide.createIcons(); }
+        }
+
+        // ==========================================
+        // CALENDARIO DEPARTAMENTOS Y VISTAS
+        // ==========================================
+        function populateCalFilters() {
+            const select = document.getElementById('calDeptFilter');
+            const current = select.value;
+            select.innerHTML = '<option value="all">Todas las Áreas</option>';
+            Object.keys(DEPARTAMENTOS).forEach(d => select.add(new Option(d, d)));
+            select.value = current;
+
+            const formDept = document.getElementById('calDept');
+            formDept.innerHTML = '<option value="" disabled selected>Seleccione departamento...</option>';
+            Object.keys(DEPARTAMENTOS).forEach(d => formDept.add(new Option(d, d)));
+            
+            document.getElementById('calDeptFilter').addEventListener('change', renderCalendar);
+        }
+
+        function toggleCalendarView(view) {
+            currentCalView = view;
+            const gridBtn = document.getElementById('btnViewGrid');
+            const agendaBtn = document.getElementById('btnViewAgenda');
+            
+            if (view === 'grid') {
+                gridBtn.className = "px-3 py-1.5 text-xs font-bold rounded bg-white text-slate-800 shadow-sm flex items-center gap-1";
+                agendaBtn.className = "px-3 py-1.5 text-xs font-bold rounded text-slate-500 hover:text-slate-800 flex items-center gap-1";
+                document.getElementById('calendarGridContainer').classList.remove('hidden-view');
+                document.getElementById('calendarAgendaContainer').classList.add('hidden-view');
+            } else {
+                agendaBtn.className = "px-3 py-1.5 text-xs font-bold rounded bg-white text-slate-800 shadow-sm flex items-center gap-1";
+                gridBtn.className = "px-3 py-1.5 text-xs font-bold rounded text-slate-500 hover:text-slate-800 flex items-center gap-1";
+                document.getElementById('calendarAgendaContainer').classList.remove('hidden-view');
+                document.getElementById('calendarGridContainer').classList.add('hidden-view');
+            }
+            renderCalendar();
+        }
+
+        function changeMonth(dir) { currentDate.setMonth(currentDate.getMonth() + dir); renderCalendar(); }
+        function resetMonth() { currentDate = new Date(); renderCalendar(); }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const filterDept = document.getElementById('calDeptFilter').value;
+            
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            document.getElementById('calendarMonthLabel').textContent = `${monthNames[month]} ${year}`;
+
+            const monthEvents = calendarEvents.filter(e => {
+                const eDate = new Date(toInputDate(e.date));
+                return eDate.getFullYear() === year && eDate.getMonth() === month && (filterDept === 'all' || e.department === filterDept);
+            }).sort((a,b) => new Date(toInputDate(a.date)) - new Date(toInputDate(b.date)));
+
+            if (currentCalView === 'grid') {
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const grid = document.getElementById('calendarGrid');
+                grid.innerHTML = '';
+                
+                for (let i = 0; i < firstDay; i++) {
+                    grid.innerHTML += `<div class="bg-slate-50 opacity-50 p-2 border-r border-b border-slate-200"></div>`;
+                }
+                
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = `${year}-${(month+1).toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
+                    const isHoliday = FESTIVOS_COLOMBIA.includes(dateStr);
+                    const isToday = (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear());
+                    
+                    let dayEvents = monthEvents.filter(e => toInputDate(e.date) === dateStr);
+                    let eventsHtml = '';
+                    dayEvents.forEach(ev => {
+                        const cClass = DEPT_COLORS[ev.department] || DEPT_COLORS['DEFAULT'];
+                        eventsHtml += `<div onclick="openCalendarDetail('${ev.id}')" class="mt-1 px-1.5 py-1 ${cClass} rounded text-[10px] font-bold truncate cursor-pointer hover:opacity-80 border shadow-sm">${ev.title}</div>`;
+                    });
+
+                    grid.innerHTML += `
+                        <div class="bg-white p-2 border-r border-b border-slate-200 relative group min-h-[120px]">
+                            <div class="flex justify-between items-start">
+                                <span class="text-sm font-bold ${isToday ? 'bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center' : 'text-slate-500'}">${day}</span>
+                                ${isHoliday ? '<i data-lucide="flag" class="w-3 h-3 text-red-400"></i>' : ''}
+                            </div>
+                            <div class="mt-1 flex flex-col gap-1 max-h-[80px] overflow-y-auto custom-scrollbar">${eventsHtml}</div>
+                            <button onclick="openCalendarFormModal(null, '${dateStr}')" class="absolute bottom-2 right-2 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            } else {
+                const agendaList = document.getElementById('calendarAgendaList');
+                agendaList.innerHTML = '';
+                if (monthEvents.length === 0) {
+                    agendaList.innerHTML = `<div class="p-8 text-center text-slate-400">No hay eventos programados para este mes.</div>`;
+                } else {
+                    monthEvents.forEach(ev => {
+                        const cClass = DEPT_COLORS[ev.department] || DEPT_COLORS['DEFAULT'];
+                        agendaList.innerHTML += `
+                            <div onclick="openCalendarDetail('${ev.id}')" class="p-4 rounded-xl border border-slate-200 hover:border-green-400 bg-white transition-all shadow-sm cursor-pointer flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-slate-100 p-3 rounded-lg text-center min-w-[65px]">
+                                        <span class="block text-xs font-bold text-slate-400 uppercase">${ev.period || 'Día'}</span>
+                                        <span class="block text-lg font-black text-slate-800">${formatDate(ev.date)}</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800 text-base mb-1">${ev.title}</h4>
+                                        <p class="text-xs text-slate-500 flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> ${ev.location || 'Por definir'}</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="px-3 py-1 rounded-md text-xs font-bold border ${cClass}">${ev.department}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            }
+            lucide.createIcons();
+        }
+
+        function updateEventDirector() {
+            const dept = document.getElementById('calDept').value;
+            document.getElementById('calDirector').value = DEPARTAMENTOS[dept] || "";
+        }
+
+        function openCalendarFormModal(id = null, defaultDate = null) {
+            document.getElementById('calendarForm').reset();
+            document.getElementById('calEventId').value = "";
+            document.getElementById('calFormTitle').textContent = "Programar Nuevo Evento";
+            if(defaultDate) document.getElementById('calDate').value = defaultDate;
+            else document.getElementById('calDate').valueAsDate = new Date();
+            
+            if (id) {
+                const ev = calendarEvents.find(x => String(x.id) === String(id));
+                if (ev) {
+                    document.getElementById('calFormTitle').textContent = "Editar Evento";
+                    document.getElementById('calEventId').value = ev.id;
+                    document.getElementById('calDept').value = ev.department;
+                    document.getElementById('calDirector').value = ev.director;
+                    document.getElementById('calDate').value = toInputDate(ev.date);
+                    document.getElementById('calPeriod').value = ev.period || "Todo el día";
+                    document.getElementById('calLocation').value = ev.location;
+                    document.getElementById('calTitle').value = ev.title;
+                    document.getElementById('calDesc').value = ev.description;
+                }
+            }
+            document.getElementById('calendarFormModal').classList.remove('hidden-view');
+        }
+
+        async function saveEvent(e) {
+            e.preventDefault();
+            const idVal = document.getElementById('calEventId').value;
+            const evData = {
+                date: document.getElementById('calDate').value,
+                department: document.getElementById('calDept').value,
+                director: document.getElementById('calDirector').value,
+                period: document.getElementById('calPeriod').value,
+                location: document.getElementById('calLocation').value,
+                title: document.getElementById('calTitle').value,
+                description: document.getElementById('calDesc').value
+            };
+
+            if (idVal) {
+                const idx = calendarEvents.findIndex(x => String(x.id) === String(idVal));
+                if(idx > -1) Object.assign(calendarEvents[idx], evData);
+            } else {
+                calendarEvents.push({ id: `E-${Date.now()}-${Math.floor(Math.random()*1000)}`, ...evData });
+            }
+
+            closeModal('calendarFormModal'); closeModal('calendarDetailModal');
+            await saveDataToAPI('calendario');
+        }
+
+        function openCalendarDetail(id) {
+            const ev = calendarEvents.find(x => String(x.id) === String(id));
+            if (!ev) return;
+
+            const cClass = DEPT_COLORS[ev.department] || DEPT_COLORS['DEFAULT'];
+            document.getElementById('calDetailHeader').className = `px-6 py-4 flex items-center justify-between z-20 ${cClass}`;
+            document.getElementById('cdTitle').textContent = ev.title;
+            document.getElementById('cdDateTime').textContent = `${formatDate(ev.date)} - Jornada: ${ev.period || "No definida"}`;
+            document.getElementById('cdLocation').textContent = ev.location || "Por definir";
+            document.getElementById('cdDept').textContent = ev.department;
+            document.getElementById('cdDirector').textContent = ev.director;
+            document.getElementById('cdDesc').textContent = ev.description || "Sin descripción.";
+
+            document.getElementById('btnEditEvent').onclick = () => { closeModal('calendarDetailModal'); openCalendarFormModal(ev.id); };
+            document.getElementById('btnDeleteEvent').onclick = async () => {
+                if(confirm("¿Eliminar este evento?")) {
+                    calendarEvents = calendarEvents.filter(x => String(x.id) !== String(ev.id));
+                    closeModal('calendarDetailModal'); await saveDataToAPI('calendario');
+                }
+            };
+            document.getElementById('calendarDetailModal').classList.remove('hidden-view');
+        }
+
         window.onload = () => {
             document.getElementById('taskSearchInput').addEventListener('input', renderTasks);
             document.getElementById('responsibleFilter').addEventListener('change', renderTasks);
             document.getElementById('statusFilter').addEventListener('change', renderTasks);
+            document.getElementById('juntaTimeFilter').addEventListener('change', renderTasks);
             
             document.getElementById('jefesTaskSearchInput').addEventListener('input', renderJefesTasks);
             document.getElementById('jefesResponsibleFilter').addEventListener('change', renderJefesTasks);
             document.getElementById('jefesStatusFilter').addEventListener('change', renderJefesTasks);
+            document.getElementById('jefesTimeFilter').addEventListener('change', renderJefesTasks);
 
             lucide.createIcons();
-
-            // Sincronización permanente en segundo plano (cada 30 segundos)
-            setInterval(() => {
-                if (currentModule === 'junta' || currentModule === 'calendario' || currentModule === 'jefes') {
-                    fetchDataFromAPI(currentModule, true);
-                }
-            }, 30000);
+            setInterval(() => { if (currentModule !== 'landing') fetchDataFromAPI(currentModule, true); }, 30000);
         };
     </script>
 </body>
