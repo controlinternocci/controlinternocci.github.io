@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- El viewport ajustado previene el zoom molesto en celulares al tocar un input -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Portal Gestión Institucional - CC Ipiales</title>
     
@@ -205,7 +204,7 @@
                 </div>
             </div>
 
-            <!-- Tabla de Tareas (Adaptativa para Celular/PC) -->
+            <!-- Tabla de Tareas -->
             <div class="bg-transparent sm:bg-white sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-sm w-full">
                 <table class="w-full text-left sm:border-collapse block sm:table">
                     <thead class="hidden sm:table-header-group">
@@ -324,7 +323,7 @@
                 </div>
             </div>
 
-            <!-- Tabla Jefes (Adaptativa para Celular/PC) -->
+            <!-- Tabla Jefes -->
             <div class="bg-transparent sm:bg-white sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-sm w-full">
                 <table class="w-full text-left sm:border-collapse block sm:table">
                     <thead class="hidden sm:table-header-group">
@@ -964,6 +963,7 @@
 
     <!-- SCRIPT PRINCIPAL -->
     <script>
+        // NUEVA CONEXIÓN DE BASE DE DATOS ACTUALIZADA
         const API_URL = "https://script.google.com/macros/s/AKfycbzdFgwAmroeGowOwL7zpeCPCS97FFqPWO68f0hRABvRk1apkAL_Ex2AJNQqEyxSbvCn/exec";
 
         // ==========================================
@@ -2151,6 +2151,9 @@
         function changeMonth(dir) { currentDate.setMonth(currentDate.getMonth() + dir); renderCalendar(); }
         function resetMonth() { currentDate = new Date(); renderCalendar(); }
 
+        // ==========================================
+        // RENDERIZADO DEL CALENDARIO (CORREGIDO PARA MÓVIL)
+        // ==========================================
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -2207,26 +2210,31 @@
                 } else {
                     monthEvents.forEach(ev => {
                         const cClass = DEPT_COLORS[ev.department] || DEPT_COLORS['DEFAULT'];
+                        
+                        // Diseño de Tarjeta estrictamente adaptado para que nada se monte o desborde
                         agendaList.innerHTML += `
                             <div onclick="openCalendarDetail('${ev.id}')" class="p-4 rounded-xl border border-slate-200 hover:border-green-400 bg-white transition-all shadow-sm cursor-pointer flex flex-col gap-3">
                                 
                                 <div class="flex flex-row items-start gap-3 sm:gap-4 w-full">
-                                    <div class="bg-slate-100 p-2 sm:p-3 rounded-lg text-center flex-shrink-0 border border-slate-200 w-[75px] sm:w-[90px]">
-                                        <span class="block text-[9px] sm:text-xs font-bold text-slate-400 uppercase">${ev.period || 'Día'}</span>
-                                        <span class="block text-xs sm:text-lg font-black text-slate-800 tracking-tight">${formatDate(ev.date)}</span>
+                                    <!-- Caja de Fecha: Ancho adaptable y texto sin quiebres (whitespace-nowrap) -->
+                                    <div class="bg-slate-100 px-3 py-2 sm:px-4 sm:py-3 rounded-lg text-center flex-shrink-0 border border-slate-200 min-w-[105px] sm:min-w-[130px]">
+                                        <span class="block text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 whitespace-nowrap">${ev.period || 'Día'}</span>
+                                        <span class="block text-sm sm:text-base font-black text-slate-800 tracking-tight whitespace-nowrap">${formatDate(ev.date)}</span>
                                     </div>
                                     
-                                    <div class="flex-grow min-w-0">
+                                    <!-- Textos alineados y con salto de línea automático -->
+                                    <div class="flex-grow min-w-0 mt-0.5">
                                         <h4 class="font-bold text-slate-800 text-sm sm:text-base leading-tight mb-1.5 break-words">${ev.title}</h4>
-                                        <p class="text-xs text-slate-500 flex items-start gap-1">
+                                        <p class="text-[11px] sm:text-xs text-slate-500 flex items-start gap-1">
                                             <i data-lucide="map-pin" class="w-3.5 h-3.5 flex-shrink-0 mt-0.5"></i> 
                                             <span class="break-words leading-tight">${ev.location || 'Por definir'}</span>
                                         </p>
                                     </div>
                                 </div>
                                 
+                                <!-- Etiqueta Departamento en línea inferior -->
                                 <div class="w-full mt-1">
-                                    <span class="inline-block px-2.5 py-1.5 rounded-md text-[10px] sm:text-xs font-bold border ${cClass} leading-tight whitespace-normal break-words">${ev.department}</span>
+                                    <span class="inline-block px-2.5 py-1.5 rounded-md text-[10px] sm:text-[11px] font-bold border ${cClass} leading-tight whitespace-normal break-words">${ev.department}</span>
                                 </div>
                                 
                             </div>
